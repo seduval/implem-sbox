@@ -6,7 +6,7 @@ OBJ = $(SRC:.cpp=.o)
 
 PROGRAM = implem
 
-all: $(PROGRAM)
+all: slp $(PROGRAM)
 
 $(PROGRAM): $(OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -19,3 +19,7 @@ clean:
 
 launch: clean all
 	./$(PROGRAM)
+
+slp :
+	$(CXX) $(CXXFLAGS) my_slp_heuristic_for_lin.cpp -o my_slp_heuristic_lin
+	$(CXX) $(CXXFLAGS) my_slp_heuristic_for_quad.cpp -o my_slp_heuristic_quad
