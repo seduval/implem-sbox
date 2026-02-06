@@ -225,7 +225,6 @@ vector<vector<poly>> Permutations(const vector<poly>& v) {
     return result;
 }
 
-
 void genComb(int start, int k, int remaining, vector<int>& current, vector<vector<int>>& result) {
     if (remaining == 0) {
         result.push_back(current);
@@ -549,7 +548,7 @@ uint32_t retrieve_linear_from_quad_basis(const vector<poly_quad>& basis, vector<
 void write_binary_matrix(const vector<poly>& vect_op, uint32_t size_in, const string& filename) {
     ofstream out(filename);
     if (!out) {
-        throw runtime_error("Impossible d'ouvrir le fichier");
+        throw runtime_error("Unable to open file" + filename);
     }
 
     string init_line = "1";
@@ -561,13 +560,13 @@ void write_binary_matrix(const vector<poly>& vect_op, uint32_t size_in, const st
     for (const poly& p : vect_op) {
         
         string line;
-        line.reserve((size_in + 1) * 2);  // bit + espace
+        line.reserve((size_in + 1) * 2);  // bit + space
 
         for (uint32_t j=0; j<size_in; j++) {
 
             uint32_t u = (1u << j);
-            uint32_t ind_word  = u >> 5;      // index du mot de 32 bits
-            uint32_t pos = u & 31;      // bit dans le mot
+            uint32_t ind_word  = u >> 5;      
+            uint32_t pos = u & 31;     
 
             uint32_t bit = (p.data[ind_word] >> pos) & 1u;
 
@@ -581,9 +580,8 @@ void write_binary_matrix(const vector<poly>& vect_op, uint32_t size_in, const st
         }
 
         uint32_t u = 0;
-        uint32_t ind_word  = u >> 5;      // index du mot de 32 bits
-        uint32_t pos = u & 31;      // bit dans le mot
-
+        uint32_t ind_word  = u >> 5;     
+        uint32_t pos = u & 31;     
         uint32_t bit = (p.data[ind_word] >> pos) & 1u;
 
         if (bit){
@@ -602,27 +600,26 @@ void write_binary_matrix(const vector<poly>& vect_op, uint32_t size_in, const st
 uint32_t read_lin_file(const std::string& filename) {
     ifstream file(filename);
     if (!file.is_open()) {
-        cerr << "Impossible d'ouvrir le fichier " << filename << "\n";
+        cerr << "Unable to open file " << filename << "\n";
         return 0; 
     }
 
     string line;
     uint32_t xorCount = 0;
 
-    // Lire la première ligne et récupérer XorCount
     if (getline(file, line)) {
         const string prefix = "XorCount:";
-        if (line.rfind(prefix, 0) == 0) { // vérifie si la ligne commence par "XorCount:"
+        if (line.rfind(prefix, 0) == 0) { 
             try {
-                xorCount = stoul(line.substr(prefix.size())); // convertir en uint32_t
+                xorCount = stoul(line.substr(prefix.size())); 
             } catch (...) {
-                cerr << "Erreur lors de la conversion de XorCount\n";
+                cerr << "Error in XorCount conversion\n";
                 xorCount = 0;
             }
         }
     }
 
-    // Afficher le reste du fichier
+    
     while (getline(file, line)) {
         cout << line << "\n";
     }
@@ -631,8 +628,7 @@ uint32_t read_lin_file(const std::string& filename) {
 }
 
 void print_basis_and_reps(const vector<poly_quad>& basis, const map<poly_quad, vector<poly_quad>>& reps, size_t size_in, unordered_map<poly, string>& polyToNames, const string& filename) {
-    // Affichage de la base
-    
+    // Print the basis
     for (size_t i = 0; i < basis.size(); i++) {
         poly p(basis[i], size_in);
         if (weight(basis[i]) == 1){
@@ -644,13 +640,13 @@ void print_basis_and_reps(const vector<poly_quad>& basis, const map<poly_quad, v
         polyToNames[p] = "q" + to_string(i);
     }
 
-    // Construction d'un dictionnaire base -> indice
+    // Dictionnary basis -> index
     unordered_map<poly_quad, uint32_t> baseIndex;
     for (uint32_t i = 0; i < basis.size(); i++) {
         baseIndex[basis[i]] = i; // q1, q2, ...
     }
 
-    uint32_t counter = basis.size(); // pour numéroter les qi des non-bases
+    uint32_t counter = basis.size();
 
     ofstream out(filename);
     if (!out) {
@@ -674,16 +670,16 @@ void print_basis_and_reps(const vector<poly_quad>& basis, const map<poly_quad, v
         counter++;
         
         string line;
-        line.reserve(basis.size() * 2);  // bit + espace
+        line.reserve(basis.size() * 2);  
 
         set<uint32_t> sorted_comb;
 
-        for (size_t j = 0; j < comb.size(); j++) { // comb contient des polys de la base dont on récupère l'indexation
+        for (size_t j = 0; j < comb.size(); j++) { 
             sorted_comb.insert(baseIndex[comb[j]]);
         }
         
         uint32_t last_pos = 0;
-        for (auto j = sorted_comb.begin(); j != sorted_comb.end(); j++) { // sorted_comb contient les indexations des polys par ordre croissants
+        for (auto j = sorted_comb.begin(); j != sorted_comb.end(); j++) {
             uint32_t pos = *j;
             for (uint32_t i=last_pos; i<pos; i++){
                 line.push_back(char('0'));
@@ -759,12 +755,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                 }
             }
 
-            cout<<"ind_perm_to_ind_anf : ";
-            for (uint32_t ind : ind_perm_to_ind_anf){
-                cout<<ind<<",";
-            }
-            cout<<endl;
-
             vector<vector<uint32_t>> Tp;
             vector<vector<uint32_t>> * T;
             T = &Tp;
@@ -781,7 +771,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
             #pragma omp critical
             {
-                cout<<"Sets créés pour : "<<omp_get_thread_num()<<endl;
+                /*cout<<"Sets créés pour : "<<omp_get_thread_num()<<endl;
                 cout<<imp[0].size()<<endl;
                 cout<<imp[1].size()<<endl;
                 cout<<imp[2].size()<<endl;
@@ -795,7 +785,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                 if (size_out > 6){
                     cout<<imp[6].size()<<endl;
                 }
-                cout<<*a<<endl;   
+                cout<<*a<<endl;   */
             }
 
             if (imp[0].size() == 0){
@@ -883,60 +873,132 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                     {
                                         compteur++;
 
-                                        if (verbose){
-                                            cout<<"Solution trouvé avec l'ensemble : "<<i<<","<<j<<","<<k<<","<<m<<endl;
-                                            cout<<"Obtenue avec thread : "<<omp_get_thread_num()<<endl;
-                                                    
-                                            cout<<"Rang de la matrice d'op quad associée : "<<r3<<endl;
-                                            cout<<"Les opérations quad utilisées sont : "<<endl;
-                                            for (auto it = op_3.begin(); it != op_3.end(); it++)    {
-                                                poly to_print(*it, size_in);
-                                                to_print.print_poly(size_in);
-                                                cout<<endl;
-                                            }
-                                            cout<<endl;
-                                            cout<<"L'évolution du rang de la matrice d'op quad est donnée par "<<r0<<","<<r1<<","<<r2<<","<<r3<<endl;
-                                            cout<<"Le nombre total de and est :"<<r3 + nb_and_min<<endl;
-                                            cout<<"L'implem est donnée par : "<<endl;
-                                            cout<<endl;
-                                            //print_details_implem(T, 0, i);
-                                            cout<<"Le type d'implem est :"<<imp[0][i].formula<<endl;
-                                            for (uint32_t n0=0; n0<imp[0][i].op_sol.size(); n0++)    {
-                                                imp[0][i].op_sol[n0].print_poly(size_in);
-                                                cout<<endl;
-                                            }
-                                            cout<<endl;
-                                            //print_details_implem(T, 1, j);
-                                            cout<<"Le type d'implem est :"<<imp[1][j].formula<<endl;
-                                            for (uint32_t n1=0; n1<imp[1][j].op_sol.size(); n1++)    {
-                                                imp[1][j].op_sol[n1].print_poly(size_in);
-                                                cout<<endl;
-                                            }
-                                            cout<<endl;
-                                            //print_details_implem(T, 2, k);
-                                            cout<<"Le type d'implem est :"<<imp[2][k].formula<<endl;
-                                            for (uint32_t n2=0; n2<imp[2][k].op_sol.size(); n2++)    {
-                                                imp[2][k].op_sol[n2].print_poly(size_in);
-                                                cout<<endl;
-                                            }
-                                            cout<<endl;
-                                            //print_details_implem(T, 3, m);
-                                            cout<<"Le type d'implem est :"<<imp[3][m].formula<<endl;
-                                            for (uint32_t n3=0; n3<imp[3][m].op_sol.size(); n3++)    {
-                                                imp[3][m].op_sol[n3].print_poly(size_in);
-                                                cout<<endl;
-                                            }
-                                            cout<<endl;
+                                        vector<pair<size_t, size_t>> index = {{0, i}, {1, j}, {2, k}, {3, m}};
 
-                                            cout<<"Nouvelle version d'affichage : "<<endl;
-                                            cout<<endl;
-                                        }
+                                                    /* Contain the actual implementations, may be a XOR sum */
+                                                    vector<poly> implem_evaluated;
+                                                    for (const auto& [id, num] : index) {
+                                                        implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
+                                                        real_order.push_back(bit_num_to_xor_sum(T, id, num));
+                                                    }
+
+                                                    /* counter to print the linear operations */
+                                                    uint32_t counter = 0;
+
+                                                    /* To retrieve the linear delta between the ANF and what is actually implemented */
+                                                    
+                                                    poly linear_parts_of_ob [size_out] ;
+
+                                                    for (uint32_t j=0; j<size_out; j++){
+                                                        poly p;
+                                                        uint32_t i = real_order[j][0];
+
+                                                        p.add(implem_evaluated[j]);
+                                                        for (uint32_t s=1; s<real_order[j].size(); s++){
+                                                           p.add(y[real_order[j][s]]);
+                                                        }
+
+                                                        poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
+                                                        p.add(poly_in_ANF);
+
+                                                        if (p.algebraic_degree(nb_elem) > 1){
+                                                            cerr<<"Error in linear parts"<<endl;
+                                                            /*p.print_poly(size_in);
+                                                            cout<<endl;*/
+                                                        }
+                                                        else {
+                                                            linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
+                                                            if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
+                                                                linear_op.push_back(p);
+                                                                polyToNames[p] = "l" + to_string(counter);
+                                                                counter++;
+                                                            }
+                                                            else{
+                                                                polyToNames[p] = print_poly2(p, size_in);
+                                                            }
+                                                        }
+                                                    }
+
+                                                    nb_and_final += r3;
+
+                                                    auto [basis, reps] = build_xor_basis(op_3, r3); 
+
+                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter);
+
+                                                    for (const auto& [id, num] : index) {
+                                                        for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
+                                                            if (imp[id][num].op_sol[idx].algebraic_degree(nb_elem) == 1) {
+                                                                nb_xor++;
+                                                                if (!imp[id][num].op_sol[idx].is_linear_monomial(size_in)) {
+                                                                    auto it = polyToNames.find(imp[id][num].op_sol[idx]);
+                                                                    if (it == polyToNames.end()) {
+                                                                        linear_op.push_back(imp[id][num].op_sol[idx]);
+                                                                        polyToNames[imp[id][num].op_sol[idx]] = "l" + to_string(counter);
+                                                                        counter++;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+
+                                                    string linear_filename = "mat_lin.txt";
+                                                    write_binary_matrix(linear_op, size_in, linear_filename);
+
+                                                    string cmd = "./my_slp_heuristic_lin < mat_lin.txt > res_lin.txt";
+                                                    int ret = system(cmd.c_str());
+
+                                                    if ( ret != 0 ) {
+                                                        cerr<<"Unable to run the command: : " + cmd<<endl;
+                                                    }
+
+                                                    nb_xor += read_lin_file("res_lin.txt");
+
+                                                    for (const auto& [id, num] : index) {
+                                                        rewrite_imp(imp[id][num], reps, basis, size_in, nb_elem);
+                                                    }
+
+                                                    string quadratic_filename = "mat_quad.txt";
+                                                    print_basis_and_reps(basis, reps, size_in, polyToNames, quadratic_filename);
+
+                                                    cmd = "./my_slp_heuristic_quad < mat_quad.txt > res_quad.txt";
+                                                    ret = system(cmd.c_str());
+
+                                                    if ( ret != 0 ) {
+                                                        cerr<<"Unable to run the command:" + cmd<<endl;
+                                                    }
+
+                                                    nb_xor += read_lin_file("res_quad.txt");
+
+                                                    for (const auto& [id, num] : index) {
+                                                        string detail_implems = print_details_implem(T, id, num, polyToNames, y);
+                                                        cout<<detail_implems;
+                                                        string expr_y = print_imp(imp[id][num], polyToNames);
+                                                        cout<<expr_y + ";"<<endl;
+                                                    }
+
+                                                    for (uint32_t j=0; j<size_out; j++){
+                                                        uint32_t i = real_order[j][0];
+                                                        if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
+                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]];
+                                                            for (uint32_t s=0; s<real_order[j].size(); s++){
+                                                                cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
+                                                                nb_xor++;
+                                                            }
+                                                            cout<<";"<<endl;
+                                                            
+                                                        }
+                                                        else {
+                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]]<<";"<<endl;
+                                                        }
+                                                        
+                                                    } 
                                     }
 
                                     if (compteur >= nb_sol){
                                         #pragma omp atomic write
                                         stop = 1;
-                                        cout<<"Number of wanted solutions reached"<<endl;
+                                        //cout<<"Number of wanted solutions reached"<<endl;
                                     }
                                 }
                             }
@@ -955,63 +1017,132 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                         if (r4 <= nb_and)  {
                                             #pragma omp critical 
                                             {
-                                                cout<<"Ancienne version d'affichage : "<<endl;
-                                                cout<<endl;
-                                                
                                                 compteur++;
-                                                cout<<"Solution trouvée avec l'ensemble : "<<i<<","<<j<<","<<k<<","<<m<<","<<p<<endl;
-                                                cout<<"Rang de la matrice d'op quad associée : "<<r4<<endl;
-                                                cout<<"Les opérations quad utilisées sont : "<<endl;
-                                                for (auto it = op_4.begin(); it != op_4.end(); it++)    {
-                                                    poly to_print(*it, size_in);
-                                                    to_print.print_poly(size_in);
-                                                    cout<<endl;
-                                                }
-                                                cout<<endl;
-                                                cout<<"L'évolution du rang de la matrice d'op quad est donnée par "<<r0<<","<<r1<<","<<r2<<","<<r3<<","<<r4<<endl;
-                                                cout<<"Le nombre total de and est :"<<r4 + nb_and_min<<endl;
-                                                cout<<"L'implem est donnée par : "<<endl;
-                                                cout<<endl;
-                                                //print_details_implem(T, 0, i);
-                                                cout<<"Le type d'implem est :"<<imp[0][i].formula<<endl;
-                                                for (uint32_t n0=0; n0<imp[0][i].op_sol.size(); n0++)    {
-                                                    imp[0][i].op_sol[n0].print_poly(size_in);
-                                                    cout<<endl;
-                                                }
-                                                cout<<endl;
-                                                //print_details_implem(T, 1, j);
-                                                cout<<"Le type d'implem est :"<<imp[1][j].formula<<endl;
-                                                for (uint32_t n1=0; n1<imp[1][j].op_sol.size(); n1++)    {
-                                                    imp[1][j].op_sol[n1].print_poly(size_in);
-                                                    cout<<endl;
-                                                }
-                                                cout<<endl;
-                                                //print_details_implem(T, 2, k);
-                                                cout<<"Le type d'implem est :"<<imp[2][k].formula<<endl;
-                                                for (uint32_t n2=0; n2<imp[2][k].op_sol.size(); n2++)    {
-                                                    imp[2][k].op_sol[n2].print_poly(size_in);
-                                                    cout<<endl;
-                                                }
-                                                cout<<endl;
-                                                //print_details_implem(T, 3, m);
-                                                cout<<"Le type d'implem est :"<<imp[3][m].formula<<endl;
-                                                for (uint32_t n3=0; n3<imp[3][m].op_sol.size(); n3++)    {
-                                                    imp[3][m].op_sol[n3].print_poly(size_in);
-                                                    cout<<endl;
-                                                }
-                                                cout<<endl;
-                                                //print_details_implem(T, 4, p);
-                                                cout<<endl;
-                                                cout<<"Le type d'implem est :"<<imp[4][p].formula<<endl;
-                                                for (uint32_t n4=0; n4<imp[4][p].op_sol.size(); n4++)    {
-                                                    imp[4][p].op_sol[n4].print_poly(size_in);
-                                                    cout<<endl;
-                                                }
-                                                cout<<endl;
+
+                                                vector<pair<size_t, size_t>> index = {{0, i}, {1, j}, {2, k}, {3, m}, {4, p}};
+
+                                                    /* Contain the actual implementations, may be a XOR sum */
+                                                    vector<poly> implem_evaluated;
+                                                    for (const auto& [id, num] : index) {
+                                                        implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
+                                                        real_order.push_back(bit_num_to_xor_sum(T, id, num));
+                                                    }
+
+                                                    /* counter to print the linear operations */
+                                                    uint32_t counter = 0;
+
+                                                    /* To retrieve the linear delta between the ANF and what is actually implemented */
+                                                    
+                                                    poly linear_parts_of_ob [size_out] ;
+
+                                                    for (uint32_t j=0; j<size_out; j++){
+                                                        poly p;
+                                                        uint32_t i = real_order[j][0];
+
+                                                        p.add(implem_evaluated[j]);
+                                                        for (uint32_t s=1; s<real_order[j].size(); s++){
+                                                           p.add(y[real_order[j][s]]);
+                                                        }
+
+                                                        poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
+                                                        p.add(poly_in_ANF);
+
+                                                        if (p.algebraic_degree(nb_elem) > 1){
+                                                            cerr<<"Error in linear parts"<<endl;
+                                                            /*p.print_poly(size_in);
+                                                            cout<<endl;*/
+                                                        }
+                                                        else {
+                                                            linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
+                                                            if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
+                                                                linear_op.push_back(p);
+                                                                polyToNames[p] = "l" + to_string(counter);
+                                                                counter++;
+                                                            }
+                                                            else{
+                                                                polyToNames[p] = print_poly2(p, size_in);
+                                                            }
+                                                        }
+                                                    }
+
+                                                    nb_and_final += r4;
+
+                                                    auto [basis, reps] = build_xor_basis(op_4, r4); 
+
+                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter);
+
+                                                    for (const auto& [id, num] : index) {
+                                                        for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
+                                                            if (imp[id][num].op_sol[idx].algebraic_degree(nb_elem) == 1) {
+                                                                nb_xor++;
+                                                                if (!imp[id][num].op_sol[idx].is_linear_monomial(size_in)) {
+                                                                    auto it = polyToNames.find(imp[id][num].op_sol[idx]);
+                                                                    if (it == polyToNames.end()) {
+                                                                        linear_op.push_back(imp[id][num].op_sol[idx]);
+                                                                        polyToNames[imp[id][num].op_sol[idx]] = "l" + to_string(counter);
+                                                                        counter++;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+
+                                                    string linear_filename = "mat_lin.txt";
+                                                    write_binary_matrix(linear_op, size_in, linear_filename);
+
+                                                    string cmd = "./my_slp_heuristic_lin < mat_lin.txt > res_lin.txt";
+                                                    int ret = system(cmd.c_str());
+
+                                                    if ( ret != 0 ) {
+                                                        cerr<<"Unable to run the command: : " + cmd<<endl;
+                                                    }
+
+                                                    nb_xor += read_lin_file("res_lin.txt");
+
+                                                    for (const auto& [id, num] : index) {
+                                                        rewrite_imp(imp[id][num], reps, basis, size_in, nb_elem);
+                                                    }
+
+                                                    string quadratic_filename = "mat_quad.txt";
+                                                    print_basis_and_reps(basis, reps, size_in, polyToNames, quadratic_filename);
+
+                                                    cmd = "./my_slp_heuristic_quad < mat_quad.txt > res_quad.txt";
+                                                    ret = system(cmd.c_str());
+
+                                                    if ( ret != 0 ) {
+                                                        cerr<<"Unable to run the command:" + cmd<<endl;
+                                                    }
+
+                                                    nb_xor += read_lin_file("res_quad.txt");
+
+                                                    for (const auto& [id, num] : index) {
+                                                        string detail_implems = print_details_implem(T, id, num, polyToNames, y);
+                                                        cout<<detail_implems;
+                                                        string expr_y = print_imp(imp[id][num], polyToNames);
+                                                        cout<<expr_y + ";"<<endl;
+                                                    }
+
+                                                    for (uint32_t j=0; j<size_out; j++){
+                                                        uint32_t i = real_order[j][0];
+                                                        if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
+                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]];
+                                                            for (uint32_t s=0; s<real_order[j].size(); s++){
+                                                                cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
+                                                                nb_xor++;
+                                                            }
+                                                            cout<<";"<<endl;
+                                                            
+                                                        }
+                                                        else {
+                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]]<<";"<<endl;
+                                                        }
+                                                        
+                                                    } 
 
                                                 if (compteur >= nb_sol){
                                                     stop = 1;
-                                                    cout<<"Number of wanted solutions reached"<<endl;
+                                                    //cout<<"Number of wanted solutions reached"<<endl;
                                                 }
                                             }
                                         }
@@ -1058,13 +1189,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                         real_order.push_back(bit_num_to_xor_sum(T, id, num));
                                                     }
 
-                                                    for (uint32_t i=0; i <size_out; i++){
-                                                        for (uint32_t j=0; j<real_order[i].size(); j++){
-                                                            cout<<real_order[i][j]<<',';
-                                                        }
-                                                        cout<<endl;
-                                                    }
-
                                                     /* counter to print the linear operations */
                                                     uint32_t counter = 0;
 
@@ -1081,28 +1205,16 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                            p.add(y[real_order[j][s]]);
                                                         }
 
-                                                        cout<<"Le poly implementé est ";
-                                                        p.print_poly(size_in);
-                                                        cout<<endl;
-
                                                         poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
                                                         p.add(poly_in_ANF);
 
-                                                        cout<<"Le poly dans 'ANF est : ";
-                                                        poly_in_ANF.print_poly(size_in);
-                                                        cout<<endl;
-
                                                         if (p.algebraic_degree(nb_elem) > 1){
                                                             cerr<<"Error in linear parts"<<endl;
-                                                            p.print_poly(size_in);
-                                                            cout<<endl;
+                                                            /*p.print_poly(size_in);
+                                                            cout<<endl;*/
                                                         }
                                                         else {
-                                                            //cout<<"ok"<<endl;
                                                             linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
-                                                            cout<<"Partie linéaire du bit : "<<ind_perm_to_ind_anf[i]<<" : ";
-                                                            p.print_poly(size_in);
-                                                            cout<<endl;
                                                             if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
                                                                 linear_op.push_back(p);
                                                                 polyToNames[p] = "l" + to_string(counter);
@@ -1171,23 +1283,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                         string expr_y = print_imp(imp[id][num], polyToNames);
                                                         cout<<expr_y + ";"<<endl;
                                                     }
-
-                                                    /*for (uint32_t j=0; j<size_out; j++){
-                                                        uint32_t i = real_order[j][0];
-                                                        if (linear_parts_of_ob[i] != zero){
-                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]];
-                                                            for (uint32_t s=0; s<real_order[i].size(); s++){
-                                                                cout<<" ^ " <<polyToNames[linear_parts_of_ob[real_order[i][s]]];
-                                                                nb_xor++;
-                                                            }
-                                                            cout<<";"<<endl;
-                                                            
-                                                        }
-                                                        else {
-                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]]<<";"<<endl;
-                                                        }
-                                                        
-                                                    }  */ 
 
                                                     for (uint32_t j=0; j<size_out; j++){
                                                         uint32_t i = real_order[j][0];
@@ -1260,76 +1355,11 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                             #pragma omp critical 
                                                             {
                                                             compteur++;
-                                                            cout<<"Solution trouvée avec l'ensemble : "<<i<<","<<j<<","<<k<<","<<m<<","<<p<<","<<q<<","<<s<<endl;
-                                                            cout<<"Rang de la matrice d'op quad associée : "<<r<<endl;
-                                                            cout<<"Les opérations quad utilisées sont : "<<endl;
-
-                                                            cout<<"---Op_selec----"<<endl;
-                                                            for (auto it = op_6.begin(); it != op_6.end(); it++)    {
-                                                                poly to_print(*it, size_in);
-                                                                to_print.print_poly(size_in);
-                                                                cout<<endl;
-                                                            }
-                                                            cout<<endl;
-                                                            cout<<"L'évolution du rang de la matrice d'op quad est donnée par "<<r0<<","<<r1<<","<<r2<<","<<r3<<","<<r4<<","<<r5<<","<<r<<endl;
-                                                            cout<<"Le nombre total de and est :"<<r + nb_and_min<<endl;
-                                                            cout<<"L'implem est donnée par : "<<endl;
-                                                            cout<<endl;
-                                                            //print_details_implem(T, 0, i);
-                                                            cout<<"Le type d'implem est :"<<imp[0][i].formula<<endl;
-                                                            for (uint32_t n0=0; n0<imp[0][i].op_sol.size(); n0++)    {
-                                                                imp[0][i].op_sol[n0].print_poly(size_in);
-                                                                cout<<endl;
-                                                            }
-                                                            cout<<endl;
-                                                            //print_details_implem(T, 1, j);
-                                                            cout<<"Le type d'implem est :"<<imp[1][j].formula<<endl;
-                                                            for (uint32_t n1=0; n1<imp[1][j].op_sol.size(); n1++)    {
-                                                                imp[1][j].op_sol[n1].print_poly(size_in);
-                                                                cout<<endl;
-                                                            }
-                                                            cout<<endl;
-                                                            //print_details_implem(T, 2, k);
-                                                            cout<<"Le type d'implem est :"<<imp[2][k].formula<<endl;
-                                                            for (uint32_t n2=0; n2<imp[2][k].op_sol.size(); n2++)    {
-                                                                imp[2][k].op_sol[n2].print_poly(size_in);
-                                                                cout<<endl;
-                                                            }
-                                                            cout<<endl;
-                                                            //print_details_implem(T, 3, m);
-                                                            cout<<"Le type d'implem est :"<<imp[3][m].formula<<endl;
-                                                            for (uint32_t n3=0; n3<imp[3][m].op_sol.size(); n3++)    {
-                                                                imp[3][m].op_sol[n3].print_poly(size_in);
-                                                                cout<<endl;
-                                                            }
-                                                            cout<<endl;
-                                                            //print_details_implem(T, 4, p);
-                                                            cout<<endl;
-                                                            cout<<"Le type d'implem est :"<<imp[4][p].formula<<endl;
-                                                            for (uint32_t n4=0; n4<imp[4][p].op_sol.size(); n4++)    {
-                                                                imp[4][p].op_sol[n4].print_poly(size_in);
-                                                                cout<<endl;
-                                                            }
-                                                            cout<<endl;
-                                                            //print_details_implem(T, 5, q);
-                                                            cout<<"Le type d'implem est :"<<imp[5][q].formula<<endl;
-                                                            for (uint32_t n5=0; n5<imp[5][q].op_sol.size(); n5++)    {
-                                                                imp[5][q].op_sol[n5].print_poly(size_in);
-                                                                cout<<endl;
-                                                            }
-                                                            cout<<endl;
-
-                                                            //print_details_implem(T, 6, s);
-                                                            cout<<"Le type d'implem est :"<<imp[6][s].formula<<endl;
-                                                            for (uint32_t n6=0; n6<imp[6][s].op_sol.size(); n6++)    {
-                                                                imp[6][s].op_sol[n6].print_poly(size_in);
-                                                                cout<<endl;
-                                                            }
-                                                            cout<<endl;
+                                                           
 
                                                             if (compteur >= nb_sol){
                                                                 stop = 1;
-                                                                cout<<"Number of wanted solutions reached"<<endl;
+                                                                //cout<<"Number of wanted solutions reached"<<endl;
                                                             }
                                                             }
                                                         }
@@ -1396,83 +1426,11 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                                     #pragma omp critical 
                                                                     {
                                                                     compteur++;
-                                                                    cout<<"Solution trouvée avec l'ensemble : "<<i<<","<<j<<","<<k<<","<<m<<","<<p<<","<<q<<","<<s<<","<<u<<endl;
-                                                                    cout<<"Rang de la matrice d'op quad associée : "<<r<<endl;
-                                                                    cout<<"Les opérations quad utilisées sont : "<<endl;
-
-                                                                    cout<<"---Op_selec----"<<endl;
-                                                                    for (auto it = op_6.begin(); it != op_6.end(); it++)    {
-                                                                        poly to_print(*it, size_in);
-                                                                        to_print.print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
-                                                                    cout<<"Le nombre total de and est :"<<r + nb_and_min<<endl;
-                                                                    cout<<"L'implem est donnée par : "<<endl;
-                                                                    cout<<endl;
-                                                                    //print_details_implem(T, 0, i);
-                                                                    cout<<"Le type d'implem est :"<<imp[0][i].formula<<endl;
-                                                                    for (uint32_t n0=0; n0<imp[0][i].op_sol.size(); n0++)    {
-                                                                        imp[0][i].op_sol[n0].print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
-                                                                    //print_details_implem(T, 1, j);
-                                                                    cout<<"Le type d'implem est :"<<imp[1][j].formula<<endl;
-                                                                    for (uint32_t n1=0; n1<imp[1][j].op_sol.size(); n1++)    {
-                                                                        imp[1][j].op_sol[n1].print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
-                                                                    //print_details_implem(T, 2, k);
-                                                                    cout<<"Le type d'implem est :"<<imp[2][k].formula<<endl;
-                                                                    for (uint32_t n2=0; n2<imp[2][k].op_sol.size(); n2++)    {
-                                                                        imp[2][k].op_sol[n2].print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
-                                                                    //print_details_implem(T, 3, m);
-                                                                    cout<<"Le type d'implem est :"<<imp[3][m].formula<<endl;
-                                                                    for (uint32_t n3=0; n3<imp[3][m].op_sol.size(); n3++)    {
-                                                                        imp[3][m].op_sol[n3].print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
-                                                                    //print_details_implem(T, 4, p);
-                                                                    cout<<endl;
-                                                                    cout<<"Le type d'implem est :"<<imp[4][p].formula<<endl;
-                                                                    for (uint32_t n4=0; n4<imp[4][p].op_sol.size(); n4++)    {
-                                                                        imp[4][p].op_sol[n4].print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
-                                                                    //print_details_implem(T, 5, q);
-                                                                    cout<<"Le type d'implem est :"<<imp[5][q].formula<<endl;
-                                                                    for (uint32_t n5=0; n5<imp[5][q].op_sol.size(); n5++)    {
-                                                                        imp[5][q].op_sol[n5].print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
-
-                                                                    //print_details_implem(T, 6, s);
-                                                                    cout<<"Le type d'implem est :"<<imp[6][s].formula<<endl;
-                                                                    for (uint32_t n6=0; n6<imp[6][s].op_sol.size(); n6++)    {
-                                                                        imp[6][s].op_sol[n6].print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
-
-                                                                    //print_details_implem(T, 7, u);
-                                                                    cout<<"Le type d'implem est :"<<imp[7][u].formula<<endl;
-                                                                    for (uint32_t n7=0; n7<imp[7][u].op_sol.size(); n7++)    {
-                                                                        imp[7][u].op_sol[n7].print_poly(size_in);
-                                                                        cout<<endl;
-                                                                    }
-                                                                    cout<<endl;
+                                                                    
 
                                                                     if (compteur >= nb_sol){
                                                                         stop = 1;
-                                                                        cout<<"Number of wanted solutions reached"<<endl;
+                                                                        //cout<<"Number of wanted solutions reached"<<endl;
                                                                     }
                                                                     }
                                                                 }
@@ -1500,12 +1458,11 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             cout<<"Nb_and = "<<nb_and_final<<endl;
             cout<<"Nb_xor = "<<nb_xor<<endl;
 
-            if (verbose){
-                #pragma omp critical
-                {
-                    cout<<"Next permutation for thread "<<omp_get_thread_num()<<endl;
-                }
-            }
+            
+            /*#pragma omp critical
+            {
+                cout<<"Next permutation for thread "<<omp_get_thread_num()<<endl;
+            }*/
         }
     }
 }

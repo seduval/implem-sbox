@@ -11731,7 +11731,7 @@ vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<
         T0.push_back(imp_0.size());
     //
 
-    cout<<"y0 done : "<<imp_0.size()<<endl;
+    //cout<<"y0 done : "<<imp_0.size()<<endl;
     
     //y1 :
         *test=TAB_SIZE -1;
@@ -11772,7 +11772,7 @@ vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<
         *a += nb_mult(deg, *test);
     //
     
-    cout<<"y1 done : "<<imp_1.size()<<endl;
+    //cout<<"y1 done : "<<imp_1.size()<<endl;
 
     //y2 :
         *test=TAB_SIZE -1;
@@ -11887,7 +11887,7 @@ vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<
         *a += nb_mult(deg, *test);
     //
 
-    cout<<"y2 done : "<<imp_2.size()<<endl;
+    //cout<<"y2 done : "<<imp_2.size()<<endl;
     
     //y3 :
         *test=TAB_SIZE -1;
@@ -12132,7 +12132,7 @@ vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<
         *a += nb_mult(deg, *test);
     //
 
-    cout<<"y3 done : "<<imp_3.size()<<endl;
+    //cout<<"y3 done : "<<imp_3.size()<<endl;
 
     #pragma omp critical
     {
@@ -12655,7 +12655,7 @@ vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<
         }
         *a += nb_mult(deg, *test);
 
-        cout<<"y4 done : "<<imp_4.size()<<endl;
+        //cout<<"y4 done : "<<imp_4.size()<<endl;
         #pragma omp critical
         {
             insert_to_size_vect(imp_4, imp, T4, T);
@@ -13702,7 +13702,7 @@ vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<
         
         *a += nb_mult(deg, *test);
 
-        cout<<"y5 done : "<<imp_5.size()<<endl;
+        //cout<<"y5 done : "<<imp_5.size()<<endl;
 
         #pragma omp critical
         {
@@ -15572,6 +15572,6 @@ vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<
         insert_to_size_vect(imp_7, imp, T7, T);
     }*/
 
-    cout<<"Create_sets done "<<endl;
+    //cout<<"Create_sets done "<<endl;
     return *imp;
 }
