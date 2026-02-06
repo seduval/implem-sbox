@@ -12,6 +12,8 @@ A file containing the look-up-tables of many interesting S-boxes is given in `li
 `make`
 
 - download the precomputation files for all S-box sizes from the archive (takes about 1h):
+`mkdir precomputation_files`
+`cd precomputation_files`
 `wget -r -np -nH --cut-dirs=2 -A txt  https://caramba.loria.fr/sbox/precomputation_files/`
 - or download the files individually for the S-box sizes you intend to study
 
