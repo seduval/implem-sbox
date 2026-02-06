@@ -29,7 +29,8 @@ A file containing the look-up-tables of many interesting S-boxes is given in `li
 
 This execution gives an implementation of the S-box corresponding to the inverse of the Q2256 representative (6 bits, degree 3), with at most 16 AND gates. This should run within a few seconds on a laptop.
 
-`./implem --lut 0,1,2,3,4,7,5,6,8,16,32,58,9,19,61,37,10,17,50,43,11,18,45,54,41,52,63,34,47,48,56,39,12,29,62,49,53,57,31,13,20,27,55,36,51,33,23,25,59,42,24,21,26,22,60,44,30,14,40,38,35,46,15,28 --andmax 16 -s 1
+```
+./implem --lut 0,1,2,3,4,7,5,6,8,16,32,58,9,19,61,37,10,17,50,43,11,18,45,54,41,52,63,34,47,48,56,39,12,29,62,49,53,57,31,13,20,27,55,36,51,33,23,25,59,42,24,21,26,22,60,44,30,14,40,38,35,46,15,28 --andmax 16 -s 1
 ANF is given by :
 y0 = x0 ^ x1x2 ^ x0x3 ^ x2x3 ^ x1x2x3 ^ x2x4 ^ x1x2x4 ^ x3x4 ^ x0x3x4 ^ x2x5 ^ x0x2x5 ^ x1x2x5 ^ x0x3x5 ^ x1x3x5 ^ x2x3x5 ^ x4x5 ^ x1x4x5 ^ x2x4x5
 y1 = x1 ^ x0x2 ^ x1x2 ^ x1x3 ^ x0x1x3 ^ x1x2x3 ^ x4 ^ x0x4 ^ x1x4 ^ x0x1x4 ^ x3x4 ^ x0x3x4 ^ x2x3x4 ^ x0x1x5 ^ x0x2x5 ^ x1x2x5 ^ x0x3x5 ^ x1x3x5 ^ x2x3x5 ^ x0x4x5 ^ x1x4x5 ^ x3x4x5
@@ -108,7 +109,8 @@ uint32_t Sbox(uint32_t X, uint8_t size) {
         return Y;
 }
 Nb_and = 16
-Nb_xor = 51`
+Nb_xor = 51
+```
 
 ## Expected timings
 
