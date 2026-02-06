@@ -1,0 +1,21 @@
+XorCount: 16
+	uint32_t l1 = x[1] ^ x[4];
+	uint32_t l2 = x[2] ^ x[5];
+	uint32_t l3 = x[5];
+	uint32_t l4 = x[2] ^ x[4];
+	uint32_t l5 = l2 ^ l4;
+	uint32_t l0 = x[3] ^ l5;
+	uint32_t l6 = x[4];
+	uint32_t l7 = x[1] ^ x[3];
+	uint32_t l8 = l1 ^ l7;
+	uint32_t l9 = x[3];
+	uint32_t l10 = x[2];
+	uint32_t l11 = l1 ^ l5;
+	uint32_t l12 = x[0] ^ x[4];
+	uint32_t l13 = l4 ^ l12;
+	uint32_t l14 = l5 ^ l12;
+	uint32_t l15 = l11 ^ l12;
+	uint32_t l16 = l0 ^ l7;
+	uint32_t l17 = x[5] ^ l4;
+	uint32_t l18 = l2 ^ l15;
+	uint32_t l19 = l14 ^ l16;
