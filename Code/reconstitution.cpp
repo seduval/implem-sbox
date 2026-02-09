@@ -174,7 +174,7 @@ string print_mon_quad_poly(poly p, uint32_t size) {
     return "0";
 }
 
-string print_imp(const implem& imp, const unordered_map<poly,string>& dict) {
+string print_imp(const implem& imp, const unordered_map<poly,string>& dict, uint32_t size_in) {
     string out;
     const string& f = imp.formula;
 
@@ -189,16 +189,24 @@ string print_imp(const implem& imp, const unordered_map<poly,string>& dict) {
             if (idx >= imp.op_sol.size())
                 throw runtime_error("Bad pX index");
 
-            const poly& p = imp.op_sol[idx];
+            poly p = imp.op_sol[idx];
 
             auto it = dict.find(p);
             if (it == dict.end()){
-                out += "(?)";
+                if (p.is_linear_monomial(size_in)){
+                    out += print_poly2(p,size_in);
+                    i = j-1;
+                }
+                else {
+                    cerr<<"unknown poly in dict"<<endl;
+                }
+            }
+            else {
+                out += "(" + it->second + ")";
                 i = j-1;
             }
 
-            out += "(" + it->second + ")";
-            i = j-1;
+            
         }
         else {
             if (f[i] == '*'){
@@ -958,7 +966,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     for (const auto& [id, num] : index) {
                                                         string detail_implems = print_details_implem(T, id, num, polyToNames, y);
                                                         cout<<detail_implems;
-                                                        string expr_y = print_imp(imp[id][num], polyToNames);
+                                                        string expr_y = print_imp(imp[id][num], polyToNames, size_in);
                                                         cout<<expr_y + ";"<<endl;
                                                     }
 
@@ -983,7 +991,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                     if (compteur >= nb_sol){
                                         #pragma omp atomic write
                                         stop = 1;
-                                        cout<<"Number of wanted solutions reached"<<endl;
                                     }
                                 }
                             }
@@ -1107,7 +1114,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     for (const auto& [id, num] : index) {
                                                         string detail_implems = print_details_implem(T, id, num, polyToNames, y);
                                                         cout<<detail_implems;
-                                                        string expr_y = print_imp(imp[id][num], polyToNames);
+                                                        string expr_y = print_imp(imp[id][num], polyToNames, size_in);
                                                         cout<<expr_y + ";"<<endl;
                                                     }
 
@@ -1130,7 +1137,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                 if (compteur >= nb_sol){
                                                     stop = 1;
-                                                    cout<<"Number of wanted solutions reached"<<endl;
                                                 }
                                             }
                                         }
@@ -1271,7 +1277,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     for (const auto& [id, num] : index) {
                                                         string detail_implems = print_details_implem(T, id, num, polyToNames, y);
                                                         cout<<detail_implems;
-                                                        string expr_y = print_imp(imp[id][num], polyToNames);
+                                                        string expr_y = print_imp(imp[id][num], polyToNames, size_in);
                                                         cout<<expr_y + ";"<<endl;
                                                     }
 
@@ -1294,7 +1300,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                     if (compteur >= nb_sol){
                                                         stop = 1;
-                                                        //cout<<"Number of wanted solutions reached"<<endl;
                                                     }
                                                     }
                                                 }
@@ -1350,7 +1355,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                             if (compteur >= nb_sol){
                                                                 stop = 1;
-                                                                cout<<"Number of wanted solutions reached"<<endl;
                                                             }
                                                             }
                                                         }
@@ -1421,7 +1425,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                                     if (compteur >= nb_sol){
                                                                         stop = 1;
-                                                                        cout<<"Number of wanted solutions reached"<<endl;
                                                                     }
                                                                     }
                                                                 }
