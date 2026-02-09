@@ -297,7 +297,7 @@ vector<uint32_t> bit_num_to_xor_sum(const vector<vector<uint32_t>>* T, uint32_t 
     return vect_res;
 }
 
-string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num, uint32_t ind, unordered_map<poly, string> polyToNames, vector<poly> y) {
+string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num, uint32_t ind, unordered_map<poly, string> outputpolyToIndex, vector<poly> y) {
 
     string to_print;
 
@@ -305,11 +305,11 @@ string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num,
     uint32_t k = vect_real_order[0];
 
     poly current_poly = y[k];
-    to_print = "\tuint32_t ty" + polyToNames[current_poly] + " = ";
+    to_print = "\tuint32_t ty" + outputpolyToIndex[current_poly] + " = ";
 
     for (uint32_t j=1; j<vect_real_order.size(); j++){
         poly poly_to_print = y[vect_real_order[j]];
-        to_print += "ty" + polyToNames[poly_to_print] + " ^ ";
+        to_print += "ty" + outputpolyToIndex[poly_to_print] + " ^ ";
     }
 
     return to_print;
@@ -723,6 +723,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             }
         
             unordered_map<poly, string> polyToNames; 
+            unordered_map<poly, string> outputpolyToIndex;
             vector<poly> linear_op;
 
             poly zero;
@@ -731,7 +732,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             uint32_t ind_perm_to_ind_anf[size_out] ;
 
             for (uint32_t i=0; i<size_out; i++){
-                polyToNames[Y[i]] = to_string(i);
+                outputpolyToIndex[Y[i]] = to_string(i);
                 for (uint32_t j=0; j<size_out; j++){
                     if (perm[i] == ANF[j]){
                         ind_perm_to_ind_anf[i] = j;
@@ -758,25 +759,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             test = &testp;
             
             vector<vector<implem>> imp = create_sets(a, test, T, y, l, l2, size_in, size_out, nb_elem, set_op, map_xor, set_op_size, map_xor_size);
-
-            #pragma omp critical
-            {
-                /*cout<<"Sets créés pour : "<<omp_get_thread_num()<<endl;
-                cout<<imp[0].size()<<endl;
-                cout<<imp[1].size()<<endl;
-                cout<<imp[2].size()<<endl;
-                cout<<imp[3].size()<<endl;
-                if (size_out > 4){
-                    cout<<imp[4].size()<<endl;
-                }
-                if (size_out > 5){
-                    cout<<imp[5].size()<<endl;
-                }
-                if (size_out > 6){
-                    cout<<imp[6].size()<<endl;
-                }
-                cout<<*a<<endl;   */
-            }
 
             if (imp[0].size() == 0){
                 #pragma omp critical
@@ -893,8 +875,8 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                         if (p.algebraic_degree(nb_elem) > 1){
                                                             cerr<<"Error in linear parts"<<endl;
-                                                            /*p.print_poly(size_in);
-                                                            cout<<endl;*/
+                                                            p.print_poly(size_in);
+                                                            cout<<endl;
                                                         }
                                                         else {
                                                             linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
@@ -964,7 +946,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     nb_xor += read_lin_file("res_quad.txt");
 
                                                     for (const auto& [id, num] : index) {
-                                                        string detail_implems = print_details_implem(T, id, num, polyToNames, y);
+                                                        string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y);
                                                         cout<<detail_implems;
                                                         string expr_y = print_imp(imp[id][num], polyToNames, size_in);
                                                         cout<<expr_y + ";"<<endl;
@@ -973,16 +955,18 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     for (uint32_t j=0; j<size_out; j++){
                                                         uint32_t i = real_order[j][0];
                                                         if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
-                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]];
-                                                            for (uint32_t s=0; s<real_order[j].size(); s++){
+                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
+                                                            /*for (uint32_t s=0; s<real_order[j].size(); s++){
                                                                 cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
                                                                 nb_xor++;
-                                                            }
-                                                            cout<<";"<<endl;
+                                                            }*/
+                                                            cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[i]]]<<";"<<endl;;
+                                                            nb_xor++;
+                                                            //cout<<";"<<endl;
                                                             
                                                         }
                                                         else {
-                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]]<<";"<<endl;
+                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]]<<";"<<endl;
                                                         }
                                                         
                                                     } 
@@ -1112,7 +1096,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     nb_xor += read_lin_file("res_quad.txt");
 
                                                     for (const auto& [id, num] : index) {
-                                                        string detail_implems = print_details_implem(T, id, num, polyToNames, y);
+                                                        string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y);
                                                         cout<<detail_implems;
                                                         string expr_y = print_imp(imp[id][num], polyToNames, size_in);
                                                         cout<<expr_y + ";"<<endl;
@@ -1121,16 +1105,18 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     for (uint32_t j=0; j<size_out; j++){
                                                         uint32_t i = real_order[j][0];
                                                         if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
-                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]];
-                                                            for (uint32_t s=0; s<real_order[j].size(); s++){
+                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
+                                                            /*for (uint32_t s=0; s<real_order[j].size(); s++){
                                                                 cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
                                                                 nb_xor++;
-                                                            }
-                                                            cout<<";"<<endl;
+                                                            }*/
+                                                            cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[i]]]<<";"<<endl;;
+                                                            nb_xor++;
+                                                            //cout<<";"<<endl;
                                                             
                                                         }
                                                         else {
-                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]]<<";"<<endl;
+                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]]<<";"<<endl;
                                                         }
                                                         
                                                     } 
@@ -1275,7 +1261,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     nb_xor += read_lin_file("res_quad.txt");
 
                                                     for (const auto& [id, num] : index) {
-                                                        string detail_implems = print_details_implem(T, id, num, polyToNames, y);
+                                                        string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y);
                                                         cout<<detail_implems;
                                                         string expr_y = print_imp(imp[id][num], polyToNames, size_in);
                                                         cout<<expr_y + ";"<<endl;
@@ -1284,7 +1270,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                     for (uint32_t j=0; j<size_out; j++){
                                                         uint32_t i = real_order[j][0];
                                                         if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
-                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]];
+                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
                                                             for (uint32_t s=0; s<real_order[j].size(); s++){
                                                                 cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
                                                                 nb_xor++;
@@ -1293,7 +1279,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                             
                                                         }
                                                         else {
-                                                            cout<<"\ty["<<polyToNames[y[i]]<<"] = ty"<<polyToNames[y[i]]<<";"<<endl;
+                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]]<<";"<<endl;
                                                         }
                                                         
                                                     } 
