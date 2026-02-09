@@ -310,33 +310,27 @@ string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num,
 pair<vector<poly_quad>, map<poly_quad, vector<poly_quad>>> build_xor_basis(const set<poly_quad>& nums, uint32_t r) {
     size_t R = static_cast<size_t>(r);
 
-    vector<poly_quad> basis_orig;               // éléments choisis parmi nums (taille <= R)
-    vector<poly_quad> basis_reduced;            // formes réduites (pivots) correspondantes
-    vector<vector<int>> basis_mask;             // basis_mask[i] length R :
-                                                //   basis_reduced[i] = XOR_{j | basis_mask[i][j]==1} basis_orig[j]
+    vector<poly_quad> basis_orig;               
+    vector<poly_quad> basis_reduced;            
+    vector<vector<int>> basis_mask;
 
     map<poly_quad, vector<poly_quad>> representations;
 
     for (const auto& num : nums) {
         poly_quad x = num;
-        vector<int> comb(R, 0); // représentation courante de x en termes des basis_orig (index < basis_orig.size())
+        vector<int> comb(R, 0);
 
-        // réduire x avec les pivots existants
         for (size_t i = 0; i < basis_reduced.size(); ++i) {
             poly_quad attempt = x ^ basis_reduced[i];
-            // la comparaison (attempt < x) est la technique classique pour détecter si pivot réduit x.
-            // elle suppose que operator< sur poly_quad correspond à un ordre compatible avec le "pivot" binaire.
             if (attempt < x) {
                 x = attempt;
-                // comb ^= basis_mask[i]
+
                 for (size_t j = 0; j < R; ++j) comb[j] ^= basis_mask[i][j];
             }
         }
 
         if (x != poly_quad(0)) {
-            // num est indépendant => on le prend comme élément de la base (obligatoire : base doit venir du set)
             if (basis_orig.size() >= R) {
-                // théoriquement impossible 
                 throw runtime_error("Error in rank computation");
             }
 
@@ -344,15 +338,12 @@ pair<vector<poly_quad>, map<poly_quad, vector<poly_quad>>> build_xor_basis(const
             basis_orig.push_back(num);
             basis_reduced.push_back(x);
 
-            // basis_mask pour ce pivot = comb avec le bit newIdx mis à 1
             vector<int> mask = comb;
             mask[newIdx] ^= 1;
             basis_mask.push_back(mask);
 
-            // représentation d'un vecteur de base = lui-même
             representations[num] = vector<poly_quad>{ num };
         } else {
-            // dépendant : comb contient la représentation en termes des basis_orig déjà présents
             vector<poly_quad> repr;
             for (size_t j = 0; j < basis_orig.size(); ++j) {
                 if (comb[j]) repr.push_back(basis_orig[j]);
@@ -361,7 +352,6 @@ pair<vector<poly_quad>, map<poly_quad, vector<poly_quad>>> build_xor_basis(const
         }
     }
 
-    // ici on suppose basis_orig.size() == R (garanti)
     return { basis_orig, representations };
 }
 
@@ -395,11 +385,8 @@ void rewrite_imp(implem& imp, map<poly_quad, vector<poly_quad>>& reps, const vec
             // Y
             size_t m = k;
             while (m < f.size() && isdigit(f[m])) m++;
-            // Les pi sont toujours croissant dans la formule donc pas besoin de lire la valeur de idxB.
-
             int idxB = idxA + 1;
 
-            // Récupérer les deux polynômes
             poly pA = imp.op_sol[idxA];
             poly pB = imp.op_sol[idxB];
 
@@ -425,7 +412,6 @@ void rewrite_imp(implem& imp, map<poly_quad, vector<poly_quad>>& reps, const vec
             }
 
             if (update_reps){
-                // Ajouter la décomposition de qnew dans reps si elle n'y ait pas déjà en enlevant les évenuels répet, Si qA = q1 ^ q2 et qB = q2 ^ q3, il faut que qnew = q1 ^ q3
                 set<poly_quad> new_reps;
 
                 for (uint32_t s=0; s<reps[qA].size(); s++){
@@ -447,19 +433,14 @@ void rewrite_imp(implem& imp, map<poly_quad, vector<poly_quad>>& reps, const vec
 
             }
 
-            // Convert to poly
             poly pnew(qnew, size);
-
-            // Remplacer dans op_sol
             imp.op_sol[idxA] = pnew;
             imp.op_sol.erase(imp.op_sol.begin() + idxB);
            
-            // remplacer "pX ^ pY" par "p(idxB+1)"
             string newVar = "p" + to_string(idxA+1);
 
             f = f.substr(0, i) + newVar + f.substr(m);
 
-            // Mettre à jour tous les pZ suivants (index décrémenté après idxB)
             for (uint64_t z = idxB+1; z <= imp.op_sol.size()+1; z++)
             {
                 string oldpz = "p" + to_string(z);
@@ -480,7 +461,7 @@ void rewrite_imp(implem& imp, map<poly_quad, vector<poly_quad>>& reps, const vec
     imp.formula = f;
 }
 
-uint32_t retrieve_linear_from_quad_basis(const vector<poly_quad>& basis, vector<poly>& linear_op, unordered_map<poly, string>& polyToNames, vector<poly> l, uint32_t size_in, uint32_t nb_elem, uint32_t counter){
+uint32_t retrieve_linear_from_quad_basis(const vector<poly_quad>& basis, vector<poly>& linear_op, unordered_map<poly, string>& polyToNames, vector<poly> l, uint32_t size_in, uint32_t nb_elem, uint32_t counter, uint32_t& nb_xor){
     uint32_t counter_l = counter;
     uint32_t monomial_order [nb_elem];
 
@@ -525,6 +506,7 @@ uint32_t retrieve_linear_from_quad_basis(const vector<poly_quad>& basis, vector<
                                 } 
 
                                 string to_print_for_qi = polyToNames[l[li]] + " & " + polyToNames[L.first] + " ^ " + polyToNames[L.second];
+                                nb_xor++;
                                 polyToNames[p] = to_print_for_qi;
                             }
                             else {
@@ -908,13 +890,16 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                         }
                                                         else {
                                                             linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
-                                                            if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
-                                                                linear_op.push_back(p);
-                                                                polyToNames[p] = "l" + to_string(counter);
-                                                                counter++;
-                                                            }
-                                                            else{
-                                                                polyToNames[p] = print_poly2(p, size_in);
+                                                            auto it = polyToNames.find(p);
+                                                            if (it == polyToNames.end()){
+                                                                if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
+                                                                    linear_op.push_back(p);
+                                                                    polyToNames[p] = "l" + to_string(counter);
+                                                                    counter++;
+                                                                }
+                                                                else{
+                                                                    polyToNames[p] = print_poly2(p, size_in);
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -923,7 +908,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                     auto [basis, reps] = build_xor_basis(op_3, r3); 
 
-                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter);
+                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter, nb_xor);
 
                                                     for (const auto& [id, num] : index) {
                                                         for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
@@ -998,7 +983,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                     if (compteur >= nb_sol){
                                         #pragma omp atomic write
                                         stop = 1;
-                                        //cout<<"Number of wanted solutions reached"<<endl;
+                                        cout<<"Number of wanted solutions reached"<<endl;
                                     }
                                 }
                             }
@@ -1054,13 +1039,16 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                         }
                                                         else {
                                                             linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
-                                                            if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
-                                                                linear_op.push_back(p);
-                                                                polyToNames[p] = "l" + to_string(counter);
-                                                                counter++;
-                                                            }
-                                                            else{
-                                                                polyToNames[p] = print_poly2(p, size_in);
+                                                            auto it = polyToNames.find(p);
+                                                            if (it == polyToNames.end()){
+                                                                if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
+                                                                    linear_op.push_back(p);
+                                                                    polyToNames[p] = "l" + to_string(counter);
+                                                                    counter++;
+                                                                }
+                                                                else{
+                                                                    polyToNames[p] = print_poly2(p, size_in);
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -1069,7 +1057,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                     auto [basis, reps] = build_xor_basis(op_4, r4); 
 
-                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter);
+                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter, nb_xor);
 
                                                     for (const auto& [id, num] : index) {
                                                         for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
@@ -1142,7 +1130,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                 if (compteur >= nb_sol){
                                                     stop = 1;
-                                                    //cout<<"Number of wanted solutions reached"<<endl;
+                                                    cout<<"Number of wanted solutions reached"<<endl;
                                                 }
                                             }
                                         }
@@ -1215,13 +1203,16 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                                         }
                                                         else {
                                                             linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
-                                                            if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
-                                                                linear_op.push_back(p);
-                                                                polyToNames[p] = "l" + to_string(counter);
-                                                                counter++;
-                                                            }
-                                                            else{
-                                                                polyToNames[p] = print_poly2(p, size_in);
+                                                            auto it = polyToNames.find(p);
+                                                            if (it == polyToNames.end()){
+                                                                if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
+                                                                    linear_op.push_back(p);
+                                                                    polyToNames[p] = "l" + to_string(counter);
+                                                                    counter++;
+                                                                }
+                                                                else{
+                                                                    polyToNames[p] = print_poly2(p, size_in);
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -1230,7 +1221,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                     auto [basis, reps] = build_xor_basis(op_5, r); 
 
-                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter);
+                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter, nb_xor);
 
                                                     for (const auto& [id, num] : index) {
                                                         for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
@@ -1359,7 +1350,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                             if (compteur >= nb_sol){
                                                                 stop = 1;
-                                                                //cout<<"Number of wanted solutions reached"<<endl;
+                                                                cout<<"Number of wanted solutions reached"<<endl;
                                                             }
                                                             }
                                                         }
@@ -1430,7 +1421,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                                                                     if (compteur >= nb_sol){
                                                                         stop = 1;
-                                                                        //cout<<"Number of wanted solutions reached"<<endl;
+                                                                        cout<<"Number of wanted solutions reached"<<endl;
                                                                     }
                                                                     }
                                                                 }
@@ -1458,11 +1449,12 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             cout<<"Nb_and = "<<nb_and_final<<endl;
             cout<<"Nb_xor = "<<nb_xor<<endl;
 
-            
-            /*#pragma omp critical
-            {
-                cout<<"Next permutation for thread "<<omp_get_thread_num()<<endl;
-            }*/
+            if (verbose){
+                #pragma omp critical
+                {
+                    cout<<"Next permutation for thread "<<omp_get_thread_num()<<endl;
+                }
+            }
         }
     }
 }
