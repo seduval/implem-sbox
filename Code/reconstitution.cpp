@@ -4,6 +4,7 @@
 #include "precomputation.h"
 #include "decomp.h"
 #include "reconstitution.h"
+#include <tuple>
 
 static int stop = 0;
 
@@ -178,7 +179,7 @@ string print_imp(const implem& imp, const unordered_map<poly,string>& dict, uint
     string out;
     const string& f = imp.formula;
 
-    for (size_t i = 0; i < f.size(); ++i)
+    for (size_t i = 0; i < f.size(); i++)
     {
         if (f[i] == 'p') {
             size_t j = i+1;
@@ -328,12 +329,12 @@ pair<vector<poly_quad>, map<poly_quad, vector<poly_quad>>> build_xor_basis(const
         poly_quad x = num;
         vector<int> comb(R, 0);
 
-        for (size_t i = 0; i < basis_reduced.size(); ++i) {
+        for (size_t i = 0; i < basis_reduced.size(); i++) {
             poly_quad attempt = x ^ basis_reduced[i];
             if (attempt < x) {
                 x = attempt;
 
-                for (size_t j = 0; j < R; ++j) comb[j] ^= basis_mask[i][j];
+                for (size_t j = 0; j < R; j++) comb[j] ^= basis_mask[i][j];
             }
         }
 
@@ -353,7 +354,7 @@ pair<vector<poly_quad>, map<poly_quad, vector<poly_quad>>> build_xor_basis(const
             representations[num] = vector<poly_quad>{ num };
         } else {
             vector<poly_quad> repr;
-            for (size_t j = 0; j < basis_orig.size(); ++j) {
+            for (size_t j = 0; j < basis_orig.size(); j++) {
                 if (comb[j]) repr.push_back(basis_orig[j]);
             }
             representations[num] = repr;
@@ -690,6 +691,63 @@ void print_basis_and_reps(const vector<poly_quad>& basis, const map<poly_quad, v
     }
 }
 
+bool try_incremental_merge(set<poly_quad>& current_set, uint32_t& current_rank, const set<poly_quad>& next_set, uint32_t nb_and_max) {
+    set<poly_quad> merged_set = current_set;
+    merged_set.insert(next_set.begin(), next_set.end());
+    uint32_t new_rank = Rank(merged_set);
+
+    if (new_rank > nb_and_max) {
+        return false;
+    }
+
+    current_set = merged_set;
+    current_rank = new_rank;
+    return true;
+}
+
+bool test_combination(const vector<vector<implem>>& imp, const vector<size_t>& indices, uint32_t nb_and_max, vector<pair<size_t, size_t>>& used_indices, set<poly_quad>& final_set, uint32_t& final_rank) {
+    set<poly_quad> current_set;
+    uint32_t current_rank = 0;
+    used_indices.clear();
+
+    for (size_t i = 0; i < indices.size(); i++) {
+        size_t idx = indices[i];
+        bool found_valid_merge = false;
+
+        for (size_t j = 0; j < imp[idx].size(); j++) {
+            const set<poly_quad>& next_set = imp[idx][j].quad_sol;
+
+            set<poly_quad> temp_set = current_set;
+            uint32_t temp_rank = current_rank;
+            if (try_incremental_merge(temp_set, temp_rank, next_set, nb_and_max)) {
+                current_set = temp_set;
+                current_rank = temp_rank;
+                used_indices.emplace_back(idx, j);
+                found_valid_merge = true;
+                break;
+            }
+        }
+
+        if (!found_valid_merge) {
+            return false; // Coupure précoce si aucun merge valide
+        }
+    }
+
+    final_set = current_set;
+    final_rank = current_rank;
+    return true;
+}
+
+vector<vector<size_t>> generate_index_combinations(uint32_t size_out) {
+    vector<vector<size_t>> combinations;
+    vector<size_t> current;
+    for (size_t i = 0; i < size_out; i++) {
+        current.push_back(i);
+    }
+    combinations.push_back(current);
+    return combinations;
+}
+
 void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32_t nb_and_max, uint32_t nb_sol, vector<poly> Y, vector<poly> l, vector<poly> l2, poly_quad set_op [], pair_xor map_xor [], uint32_t set_op_size, uint32_t map_xor_size, vector<poly> ANF){
     
     vector<vector<poly>> vect_perm = Permutations(ANF);
@@ -786,648 +844,163 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             cout<<"\t}"<<endl;
             cout<<"\tuint32_t y[size];"<<endl;
             
-            for (uint32_t i=0; i<imp[0].size() && !stop; i++)    {
+            vector<vector<size_t>> index_combinations = generate_index_combinations(size_out);
 
-                set<poly_quad> op_0 = imp[0][i].quad_sol;                                  
+            for (const auto& indices : index_combinations) {
+                if (stop) break;
 
-                set<poly_quad> temp_0 = op_0;
-                uint32_t r0 = Rank(temp_0);
+                set<poly_quad> merged_set;
+                uint32_t merged_rank;
+                vector<pair<size_t, size_t>> used_indices;
 
-                if (r0 > nb_and ){
-                    continue;
-                }
+                if (test_combination(imp, indices, nb_and, used_indices, merged_set, merged_rank)) {
+                    if (merged_rank <= nb_and) {
+                        #pragma omp critical
+                        {
+                            compteur++;
+                                       
 
-                for (uint32_t j=0; j<imp[1].size() && !stop; j++)    {
-
-                    set<poly_quad> op_1 = imp[1][j].quad_sol;
-
-                    set<poly_quad> to_merge_0 = op_0;
-                    op_1.merge(to_merge_0);
-
-                    set<poly_quad> temp_1 = op_1;
-                    uint32_t r1 = Rank(temp_1);
-
-                    if (r1 > nb_and ){
-                        continue;
-                    }
-
-                    for (uint32_t k=0; k<imp[2].size() && !stop; k++)    {
-
-                        set<poly_quad> op_2 = imp[2][k].quad_sol;
-
-                        set<poly_quad> to_merge_1 = op_1;
-                        op_2.merge(to_merge_1);
-                        
-                        set<poly_quad> temp_2 = op_2;
-                        uint32_t r2 = Rank(temp_2);
-
-                        if (r2 > nb_and ){
-                            continue;
-                        }
-
-                        for (uint32_t m=0; m<imp[3].size() && !stop; m++)    {
-
-                            set<poly_quad> op_3 = imp[3][m].quad_sol;
-
-                            set<poly_quad> to_merge_2 = op_2;
-                            op_3.merge(to_merge_2);
-
-                            set<poly_quad> temp_3 = op_3;
-                            uint32_t r3 = Rank(temp_3); 
-
-                            if (r3 > nb_and ){
-                                continue;
+                            uint32_t ind_to_perm [size_out];
+                            for (uint32_t j=0; j<size_out; j++) {
+                                ind_to_perm[bit_num_to_real_order(T, j)] = j ;
                             }
 
-                            if (size_out == 4){
-                                if (r3 <= nb_and)  {
-                                    #pragma omp critical 
-                                    {
-                                        compteur++;
+                            vector<pair<size_t, size_t>> index(used_indices.size());
+                            for (size_t i = 0; i < used_indices.size(); i++) {
+                                index[i] = used_indices[ind_to_perm[i]];
+                            }
 
-                                        vector<pair<size_t, size_t>> index = {{0, i}, {1, j}, {2, k}, {3, m}};
+                            /* Contain the actual implementations, may be a XOR sum */
+                            vector<poly> implem_evaluated;
+                            for (const auto& [id, num] : index) {
+                                implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
+                                real_order.push_back(bit_num_to_xor_sum(T, id, num));
+                            }
 
-                                                    /* Contain the actual implementations, may be a XOR sum */
-                                                    vector<poly> implem_evaluated;
-                                                    for (const auto& [id, num] : index) {
-                                                        implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
-                                                        real_order.push_back(bit_num_to_xor_sum(T, id, num));
-                                                    }
+                            /* counter to print the linear operations */
+                            uint32_t counter = 0;
 
-                                                    /* counter to print the linear operations */
-                                                    uint32_t counter = 0;
-
-                                                    /* To retrieve the linear delta between the ANF and what is actually implemented */
+                            /* To retrieve the linear delta between the ANF and what is actually implemented */
                                                     
-                                                    poly linear_parts_of_ob [size_out] ;
+                            poly linear_parts_of_ob [size_out] ;
 
-                                                    for (uint32_t j=0; j<size_out; j++){
-                                                        poly p;
-                                                        uint32_t i = real_order[j][0];
+                            for (uint32_t j=0; j<size_out; j++){
+                                poly p;
+                                uint32_t i = real_order[j][0];
 
-                                                        p.add(implem_evaluated[j]);
-                                                        for (uint32_t s=1; s<real_order[j].size(); s++){
-                                                           p.add(y[real_order[j][s]]);
-                                                        }
-
-                                                        poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
-                                                        p.add(poly_in_ANF);
-
-                                                        if (p.algebraic_degree(nb_elem) > 1){
-                                                            cerr<<"Error in linear parts"<<endl;
-                                                            p.print_poly(size_in);
-                                                            cout<<endl;
-                                                        }
-                                                        else {
-                                                            linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
-                                                            auto it = polyToNames.find(p);
-                                                            if (it == polyToNames.end()){
-                                                                if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
-                                                                    linear_op.push_back(p);
-                                                                    polyToNames[p] = "l" + to_string(counter);
-                                                                    counter++;
-                                                                }
-                                                                else{
-                                                                    polyToNames[p] = print_poly2(p, size_in);
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    nb_and_final += r3;
-
-                                                    auto [basis, reps] = build_xor_basis(op_3, r3); 
-
-                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter, nb_xor);
-
-                                                    for (const auto& [id, num] : index) {
-                                                        for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
-                                                            if (imp[id][num].op_sol[idx].algebraic_degree(nb_elem) == 1) {
-                                                                nb_xor++;
-                                                                if (!imp[id][num].op_sol[idx].is_linear_monomial(size_in)) {
-                                                                    auto it = polyToNames.find(imp[id][num].op_sol[idx]);
-                                                                    if (it == polyToNames.end()) {
-                                                                        linear_op.push_back(imp[id][num].op_sol[idx]);
-                                                                        polyToNames[imp[id][num].op_sol[idx]] = "l" + to_string(counter);
-                                                                        counter++;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-
-                                                    string linear_filename = "mat_lin.txt";
-                                                    write_binary_matrix(linear_op, size_in, linear_filename);
-
-                                                    string cmd = "./my_slp_heuristic_lin < mat_lin.txt > res_lin.txt";
-                                                    int ret = system(cmd.c_str());
-
-                                                    if ( ret != 0 ) {
-                                                        cerr<<"Unable to run the command: : " + cmd<<endl;
-                                                    }
-
-                                                    nb_xor += read_lin_file("res_lin.txt");
-
-                                                    for (const auto& [id, num] : index) {
-                                                        rewrite_imp(imp[id][num], reps, basis, size_in, nb_elem);
-                                                    }
-
-                                                    string quadratic_filename = "mat_quad.txt";
-                                                    print_basis_and_reps(basis, reps, size_in, polyToNames, quadratic_filename);
-
-                                                    cmd = "./my_slp_heuristic_quad < mat_quad.txt > res_quad.txt";
-                                                    ret = system(cmd.c_str());
-
-                                                    if ( ret != 0 ) {
-                                                        cerr<<"Unable to run the command:" + cmd<<endl;
-                                                    }
-
-                                                    nb_xor += read_lin_file("res_quad.txt");
-
-                                                    for (const auto& [id, num] : index) {
-                                                        string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y);
-                                                        cout<<detail_implems;
-                                                        string expr_y = print_imp(imp[id][num], polyToNames, size_in);
-                                                        cout<<expr_y + ";"<<endl;
-                                                    }
-
-                                                    for (uint32_t j=0; j<size_out; j++){
-                                                        uint32_t i = real_order[j][0];
-                                                        if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
-                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
-                                                            /*for (uint32_t s=0; s<real_order[j].size(); s++){
-                                                                cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
-                                                                nb_xor++;
-                                                            }*/
-                                                            cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[i]]]<<";"<<endl;;
-                                                            nb_xor++;
-                                                            //cout<<";"<<endl;
-                                                            
-                                                        }
-                                                        else {
-                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]]<<";"<<endl;
-                                                        }
-                                                        
-                                                    } 
-                                    }
-
-                                    if (compteur >= nb_sol){
-                                        #pragma omp atomic write
-                                        stop = 1;
-                                    }
+                                p.add(implem_evaluated[j]);
+                                for (uint32_t s=1; s<real_order[j].size(); s++){
+                                    p.add(y[real_order[j][s]]);
                                 }
-                            }
-                            else {
-                                if (size_out == 5){
 
-                                    for (uint32_t p=0; p<imp[4].size() && !stop; p++)    {
+                                poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
+                                p.add(poly_in_ANF);
 
-                                        set<poly_quad> op_4 = imp[4][p].quad_sol;
-                                        set<poly_quad> to_merge_3 = op_3;
-                                        op_4.merge(to_merge_3);
-
-                                        set<poly_quad> temp_4 = op_4;
-                                        uint32_t r4 = Rank(temp_4);
-
-                                        if (r4 <= nb_and)  {
-                                            #pragma omp critical 
-                                            {
-                                                compteur++;
-
-                                                vector<pair<size_t, size_t>> index = {{0, i}, {1, j}, {2, k}, {3, m}, {4, p}};
-
-                                                    /* Contain the actual implementations, may be a XOR sum */
-                                                    vector<poly> implem_evaluated;
-                                                    for (const auto& [id, num] : index) {
-                                                        implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
-                                                        real_order.push_back(bit_num_to_xor_sum(T, id, num));
-                                                    }
-
-                                                    /* counter to print the linear operations */
-                                                    uint32_t counter = 0;
-
-                                                    /* To retrieve the linear delta between the ANF and what is actually implemented */
-                                                    
-                                                    poly linear_parts_of_ob [size_out] ;
-
-                                                    for (uint32_t j=0; j<size_out; j++){
-                                                        poly p;
-                                                        uint32_t i = real_order[j][0];
-
-                                                        p.add(implem_evaluated[j]);
-                                                        for (uint32_t s=1; s<real_order[j].size(); s++){
-                                                           p.add(y[real_order[j][s]]);
-                                                        }
-
-                                                        poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
-                                                        p.add(poly_in_ANF);
-
-                                                        if (p.algebraic_degree(nb_elem) > 1){
-                                                            cerr<<"Error in linear parts"<<endl;
-                                                            /*p.print_poly(size_in);
-                                                            cout<<endl;*/
-                                                        }
-                                                        else {
-                                                            linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
-                                                            auto it = polyToNames.find(p);
-                                                            if (it == polyToNames.end()){
-                                                                if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
-                                                                    linear_op.push_back(p);
-                                                                    polyToNames[p] = "l" + to_string(counter);
-                                                                    counter++;
-                                                                }
-                                                                else{
-                                                                    polyToNames[p] = print_poly2(p, size_in);
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    nb_and_final += r4;
-
-                                                    auto [basis, reps] = build_xor_basis(op_4, r4); 
-
-                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter, nb_xor);
-
-                                                    for (const auto& [id, num] : index) {
-                                                        for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
-                                                            if (imp[id][num].op_sol[idx].algebraic_degree(nb_elem) == 1) {
-                                                                nb_xor++;
-                                                                if (!imp[id][num].op_sol[idx].is_linear_monomial(size_in)) {
-                                                                    auto it = polyToNames.find(imp[id][num].op_sol[idx]);
-                                                                    if (it == polyToNames.end()) {
-                                                                        linear_op.push_back(imp[id][num].op_sol[idx]);
-                                                                        polyToNames[imp[id][num].op_sol[idx]] = "l" + to_string(counter);
-                                                                        counter++;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-
-                                                    string linear_filename = "mat_lin.txt";
-                                                    write_binary_matrix(linear_op, size_in, linear_filename);
-
-                                                    string cmd = "./my_slp_heuristic_lin < mat_lin.txt > res_lin.txt";
-                                                    int ret = system(cmd.c_str());
-
-                                                    if ( ret != 0 ) {
-                                                        cerr<<"Unable to run the command: : " + cmd<<endl;
-                                                    }
-
-                                                    nb_xor += read_lin_file("res_lin.txt");
-
-                                                    for (const auto& [id, num] : index) {
-                                                        rewrite_imp(imp[id][num], reps, basis, size_in, nb_elem);
-                                                    }
-
-                                                    string quadratic_filename = "mat_quad.txt";
-                                                    print_basis_and_reps(basis, reps, size_in, polyToNames, quadratic_filename);
-
-                                                    cmd = "./my_slp_heuristic_quad < mat_quad.txt > res_quad.txt";
-                                                    ret = system(cmd.c_str());
-
-                                                    if ( ret != 0 ) {
-                                                        cerr<<"Unable to run the command:" + cmd<<endl;
-                                                    }
-
-                                                    nb_xor += read_lin_file("res_quad.txt");
-
-                                                    for (const auto& [id, num] : index) {
-                                                        string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y);
-                                                        cout<<detail_implems;
-                                                        string expr_y = print_imp(imp[id][num], polyToNames, size_in);
-                                                        cout<<expr_y + ";"<<endl;
-                                                    }
-
-                                                    for (uint32_t j=0; j<size_out; j++){
-                                                        uint32_t i = real_order[j][0];
-                                                        if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
-                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
-                                                            /*for (uint32_t s=0; s<real_order[j].size(); s++){
-                                                                cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
-                                                                nb_xor++;
-                                                            }*/
-                                                            cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[i]]]<<";"<<endl;;
-                                                            nb_xor++;
-                                                            //cout<<";"<<endl;
-                                                            
-                                                        }
-                                                        else {
-                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]]<<";"<<endl;
-                                                        }
-                                                        
-                                                    } 
-
-                                                if (compteur >= nb_sol){
-                                                    stop = 1;
-                                                }
-                                            }
-                                        }
-                                    }
+                                if (p.algebraic_degree(nb_elem) > 1){
+                                    cerr<<"Error in linear parts"<<endl;
+                                    p.print_poly(size_in);
+                                    cout<<endl;
                                 }
                                 else {
-                                    if (size_out == 6){
-
-                                        for (uint32_t p=0; p<imp[4].size() && !stop; p++)    {
-
-                                            set<poly_quad> op_4 = imp[4][p].quad_sol;
-
-                                            set<poly_quad> to_merge_3 = op_3;
-                                            op_4.merge(to_merge_3);
-
-                                            set<poly_quad> temp_4 = op_4;
-                                            uint32_t r4 = Rank(temp_4); 
-
-                                            if (r4 > nb_and ){
-                                                continue;
-                                            }
-
-                                            for (uint32_t q=0; q<imp[5].size() && !stop; q++)    {
-
-                                                set<poly_quad> op_5 = imp[5][q].quad_sol;
-
-                                                set<poly_quad> to_merge_4 = op_4;
-                                                op_5.merge(to_merge_4);
-
-                                                set<poly_quad> temp_5 = op_5;
-                                                uint32_t r = Rank(temp_5);
-
-                                                if (r <= nb_and)  {
-                                                    #pragma omp critical 
-                                                    {
-                                                    compteur++;
-   
-                                                    vector<pair<size_t, size_t>> index = {{0, i}, {1, j}, {2, k}, {3, m}, {4, p}, {5, q}};
-
-                                                    /* Contain the actual implementations, may be a XOR sum */
-                                                    vector<poly> implem_evaluated;
-                                                    for (const auto& [id, num] : index) {
-                                                        implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
-                                                        real_order.push_back(bit_num_to_xor_sum(T, id, num));
-                                                    }
-
-                                                    /* counter to print the linear operations */
-                                                    uint32_t counter = 0;
-
-                                                    /* To retrieve the linear delta between the ANF and what is actually implemented */
-                                                    
-                                                    poly linear_parts_of_ob [size_out] ;
-
-                                                    for (uint32_t j=0; j<size_out; j++){
-                                                        poly p;
-                                                        uint32_t i = real_order[j][0];
-
-                                                        p.add(implem_evaluated[j]);
-                                                        for (uint32_t s=1; s<real_order[j].size(); s++){
-                                                           p.add(y[real_order[j][s]]);
-                                                        }
-
-                                                        poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
-                                                        p.add(poly_in_ANF);
-
-                                                        if (p.algebraic_degree(nb_elem) > 1){
-                                                            cerr<<"Error in linear parts"<<endl;
-                                                            /*p.print_poly(size_in);
-                                                            cout<<endl;*/
-                                                        }
-                                                        else {
-                                                            linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
-                                                            auto it = polyToNames.find(p);
-                                                            if (it == polyToNames.end()){
-                                                                if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
-                                                                    linear_op.push_back(p);
-                                                                    polyToNames[p] = "l" + to_string(counter);
-                                                                    counter++;
-                                                                }
-                                                                else{
-                                                                    polyToNames[p] = print_poly2(p, size_in);
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    nb_and_final += r;
-
-                                                    auto [basis, reps] = build_xor_basis(op_5, r); 
-
-                                                    counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter, nb_xor);
-
-                                                    for (const auto& [id, num] : index) {
-                                                        for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
-                                                            if (imp[id][num].op_sol[idx].algebraic_degree(nb_elem) == 1) {
-                                                                nb_xor++;
-                                                                if (!imp[id][num].op_sol[idx].is_linear_monomial(size_in)) {
-                                                                    auto it = polyToNames.find(imp[id][num].op_sol[idx]);
-                                                                    if (it == polyToNames.end()) {
-                                                                        linear_op.push_back(imp[id][num].op_sol[idx]);
-                                                                        polyToNames[imp[id][num].op_sol[idx]] = "l" + to_string(counter);
-                                                                        counter++;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-
-                                                    string linear_filename = "mat_lin.txt";
-                                                    write_binary_matrix(linear_op, size_in, linear_filename);
-
-                                                    string cmd = "./my_slp_heuristic_lin < mat_lin.txt > res_lin.txt";
-                                                    int ret = system(cmd.c_str());
-
-                                                    if ( ret != 0 ) {
-                                                        cerr<<"Unable to run the command: : " + cmd<<endl;
-                                                    }
-
-                                                    nb_xor += read_lin_file("res_lin.txt");
-
-                                                    for (const auto& [id, num] : index) {
-                                                        rewrite_imp(imp[id][num], reps, basis, size_in, nb_elem);
-                                                    }
-
-                                                    string quadratic_filename = "mat_quad.txt";
-                                                    print_basis_and_reps(basis, reps, size_in, polyToNames, quadratic_filename);
-
-                                                    cmd = "./my_slp_heuristic_quad < mat_quad.txt > res_quad.txt";
-                                                    ret = system(cmd.c_str());
-
-                                                    if ( ret != 0 ) {
-                                                        cerr<<"Unable to run the command:" + cmd<<endl;
-                                                    }
-
-                                                    nb_xor += read_lin_file("res_quad.txt");
-
-                                                    for (const auto& [id, num] : index) {
-                                                        string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y);
-                                                        cout<<detail_implems;
-                                                        string expr_y = print_imp(imp[id][num], polyToNames, size_in);
-                                                        cout<<expr_y + ";"<<endl;
-                                                    }
-
-                                                    for (uint32_t j=0; j<size_out; j++){
-                                                        uint32_t i = real_order[j][0];
-                                                        if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
-                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
-                                                            for (uint32_t s=0; s<real_order[j].size(); s++){
-                                                                cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
-                                                                nb_xor++;
-                                                            }
-                                                            cout<<";"<<endl;
-                                                            
-                                                        }
-                                                        else {
-                                                            cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]]<<";"<<endl;
-                                                        }
-                                                        
-                                                    } 
-
-                                                    if (compteur >= nb_sol){
-                                                        stop = 1;
-                                                    }
-                                                    }
-                                                }
-                                            }
+                                    linear_parts_of_ob[ind_perm_to_ind_anf[i]] = p;
+                                    auto it = polyToNames.find(p);
+                                    if (it == polyToNames.end()){
+                                        if ( (p != zero) && (!p.is_linear_monomial(size_in)) ){
+                                            linear_op.push_back(p);
+                                            polyToNames[p] = "l" + to_string(counter);
+                                            counter++;
+                                        }
+                                        else{
+                                            polyToNames[p] = print_poly2(p, size_in);
                                         }
                                     }
-                                    else {
-                                        if (size_out ==7){
-                                            for (uint32_t p=0; p<imp[4].size() && !stop; p++)    {
+                                }
+                            }
 
-                                                set<poly_quad> op_4 = imp[4][p].quad_sol;
+                            nb_and_final += merged_rank;
 
-                                                set<poly_quad> to_merge_3 = op_3;
-                                                op_4.merge(to_merge_3);
+                            auto [basis, reps] = build_xor_basis(merged_set, merged_rank); 
 
-                                                set<poly_quad> temp_4 = op_4;
-                                                uint32_t r4 = Rank(temp_4); 
+                            counter = retrieve_linear_from_quad_basis(basis, linear_op, polyToNames, l, size_in, nb_elem, counter, nb_xor);
 
-                                                if (r4 > nb_and-1){
-                                                    continue;
-                                                }
-
-                                                for (uint32_t q=0; q<imp[5].size() && !stop; q++)    {
-
-                                                    set<poly_quad> op_5 = imp[5][q].quad_sol;
-
-                                                    set<poly_quad> to_merge_4 = op_4;
-                                                    op_5.merge(to_merge_4);
-
-                                                    set<poly_quad> temp_5 = op_5;
-                                                    uint32_t r5 = Rank(temp_5);
-
-                                                    if (r5 > nb_and-1){
-                                                        continue;
-                                                    }
-
-                                                    for (uint32_t s=0; s<imp[6].size() && !stop; s++){
-
-                                                        set<poly_quad> op_6 = imp[6][s].quad_sol;
-
-                                                        set<poly_quad> to_merge_5 = op_5;
-                                                        op_6.merge(to_merge_5);
-
-                                                        set<poly_quad> temp_6 = op_6;
-                                                        uint32_t r = Rank(temp_6);
-
-                                                        if (r <= nb_and)  {
-
-                                                            #pragma omp critical 
-                                                            {
-                                                            compteur++;
-                                                           
-
-                                                            if (compteur >= nb_sol){
-                                                                stop = 1;
-                                                            }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }      
-                                        }
-                                        else {
-                                            if (size_out == 8){
-                                                for (uint32_t p=0; p<imp[4].size() && !stop; p++)    {
-
-                                                    set<poly_quad> op_4 = imp[4][p].quad_sol;
-
-                                                    set<poly_quad> to_merge_3 = op_3;
-                                                    op_4.merge(to_merge_3);
-
-                                                    set<poly_quad> temp_4 = op_4;
-                                                    uint32_t r4 = Rank(temp_4); 
-
-                                                    if (r4 > nb_and){
-                                                        continue;
-                                                    }
-
-                                                    for (uint32_t q=0; q<imp[5].size() && !stop; q++)    {
-
-                                                        set<poly_quad> op_5 = imp[5][q].quad_sol;
-
-                                                        set<poly_quad> to_merge_4 = op_4;
-                                                        op_5.merge(to_merge_4);
-
-                                                        set<poly_quad> temp_5 = op_5;
-                                                        uint32_t r5 = Rank(temp_5);
-
-                                                        if (r5 > nb_and){
-                                                            continue;
-                                                        }
-
-                                                        for (uint32_t s=0; s<imp[6].size() && !stop; s++){
-
-                                                            set<poly_quad> op_6 = imp[6][s].quad_sol;
-
-                                                            set<poly_quad> to_merge_5 = op_5;
-                                                            op_6.merge(to_merge_5);
-
-                                                            set<poly_quad> temp_6 = op_6;
-                                                            uint32_t r6 = Rank(temp_6);
-
-                                                            if (r6 > nb_and){
-                                                                continue;
-                                                            }
-
-                                                            for (uint32_t u=0; u<imp[7].size() && !stop; u++){
-
-                                                                set<poly_quad> op_7 = imp[7][u].quad_sol;
-
-                                                                set<poly_quad> to_merge_6 = op_6;
-                                                                op_7.merge(to_merge_6);
-
-                                                                set<poly_quad> temp_7 = op_7;
-                                                                uint32_t r = Rank(temp_7);
-
-                                                                if (r <= nb_and)  {
-
-                                                                    #pragma omp critical 
-                                                                    {
-                                                                    compteur++;
-                                                                    
-
-                                                                    if (compteur >= nb_sol){
-                                                                        stop = 1;
-                                                                    }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }      
-                                                }
+                            for (const auto& [id, num] : index) {
+                                for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
+                                    if (imp[id][num].op_sol[idx].algebraic_degree(nb_elem) == 1) {
+                                        nb_xor++;
+                                        if (!imp[id][num].op_sol[idx].is_linear_monomial(size_in)) {
+                                            auto it = polyToNames.find(imp[id][num].op_sol[idx]);
+                                            if (it == polyToNames.end()) {
+                                                linear_op.push_back(imp[id][num].op_sol[idx]);
+                                                polyToNames[imp[id][num].op_sol[idx]] = "l" + to_string(counter);
+                                                counter++;
                                             }
                                         }
                                     }
                                 }
                             }
+
+
+                            string linear_filename = "mat_lin.txt";
+                            write_binary_matrix(linear_op, size_in, linear_filename);
+
+                            string cmd = "./my_slp_heuristic_lin < mat_lin.txt > res_lin.txt";
+                            int ret = system(cmd.c_str());
+
+                            if ( ret != 0 ) {
+                                cerr<<"Unable to run the command: : " + cmd<<endl;
+                            }
+
+                            nb_xor += read_lin_file("res_lin.txt");
+
+                            for (const auto& [id, num] : index) {
+                                rewrite_imp(imp[id][num], reps, basis, size_in, nb_elem);
+                            }
+
+                            string quadratic_filename = "mat_quad.txt";
+                            print_basis_and_reps(basis, reps, size_in, polyToNames, quadratic_filename);
+
+                            cmd = "./my_slp_heuristic_quad < mat_quad.txt > res_quad.txt";
+                            ret = system(cmd.c_str());
+
+                            if ( ret != 0 ) {
+                                cerr<<"Unable to run the command:" + cmd<<endl;
+                            }
+
+                            nb_xor += read_lin_file("res_quad.txt");
+
+                            for (const auto& [id, num] : index) {
+                                string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y);
+                                cout<<detail_implems;
+                                string expr_y = print_imp(imp[id][num], polyToNames, size_in);
+                                cout<<expr_y + ";"<<endl;
+                            }
+
+                            for (uint32_t j=0; j<size_out; j++){
+                                uint32_t i = real_order[j][0];
+                                if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
+                                    cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
+                                    for (uint32_t s=0; s<real_order[j].size(); s++){
+                                        cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
+                                        nb_xor++;
+                                    }
+                                    cout<<";"<<endl;
+                                                                
+                                }
+                                else {
+                                    cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]]<<";"<<endl;
+                                }
+                                                            
+                            } 
+                        }
+
+                        if (compteur >= nb_sol){
+                            #pragma omp atomic write
+                            stop = 1;
                         }
                     }
                 }
             }
-
+ 
             cout<<"\tuint32_t Y = 0;"<<endl;
             cout<<"\tfor(uint8_t b=0; b<size; b++) {"<<endl;
             cout<<"\t\tY ^= ((Y>>b) ^ y[b]) << b;"<<endl;
@@ -1438,11 +1011,9 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             cout<<"Nb_and = "<<nb_and_final<<endl;
             cout<<"Nb_xor = "<<nb_xor<<endl;
 
-            if (verbose){
-                #pragma omp critical
-                {
-                    cout<<"Next permutation for thread "<<omp_get_thread_num()<<endl;
-                }
+            #pragma omp critical
+            {
+                cout<<"Next permutation for thread "<<omp_get_thread_num()<<endl;
             }
         }
     }
