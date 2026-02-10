@@ -21,6 +21,4 @@ For example, over 6 bits, the number of monomials is 2^6 = 64, we will then have
 #define MAX_RANK_DEG5_V1 8
 #define MAX_RANK_DEG5_V2 6
 
-#define verbose 0
-
 #endif

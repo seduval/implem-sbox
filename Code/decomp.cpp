@@ -11743,7 +11743,7 @@ poly xor_from_mask(uint32_t mask, const vector<poly>& y) {
     return res;
 }
 
-void process_output(uint32_t i, vector<poly> y,uint32_t size_in, uint32_t nb_elem, vector<poly> l,vector<poly> l2,poly_quad set_op[], pair_xor map_xor[],uint32_t set_op_size,uint32_t map_xor_size,uint32_t* test,uint32_t* a,vector<implem>& imp_i, vector<uint32_t>& T_i) {
+/*void process_output(uint32_t i, vector<poly> y,uint32_t size_in, uint32_t nb_elem, vector<poly> l,vector<poly> l2,poly_quad set_op[], pair_xor map_xor[],uint32_t set_op_size,uint32_t map_xor_size,uint32_t* test,uint32_t* a,vector<implem>& imp_i, vector<uint32_t>& T_i) {
     *test = TAB_SIZE - 1;
 
     uint32_t best_deg = y[i].algebraic_degree(nb_elem);
@@ -11790,7 +11790,65 @@ void process_output(uint32_t i, vector<poly> y,uint32_t size_in, uint32_t nb_ele
     }
 
     *a += nb_mult(best_deg, *test);
+}*/
+
+void process_output(uint32_t i, vector<poly> y, uint32_t size_in, uint32_t nb_elem, vector<poly> l, vector<poly> l2, poly_quad set_op[], pair_xor map_xor[], uint32_t set_op_size, uint32_t map_xor_size, uint32_t* test, uint32_t* a, vector<implem>& imp_i, vector<uint32_t>& T_i) {
+    *test = TAB_SIZE - 1;
+
+    uint32_t best_deg = y[i].algebraic_degree(nb_elem);
+    decomposition dec(size_in, best_deg);
+
+    imp_i = dec.add_to_op_selec(y[i], l, l2, size_in, best_deg, nb_elem, set_op, map_xor, set_op_size, map_xor_size, test);
+
+    T_i.push_back(imp_i.size());
+
+    uint32_t max_mask = 1u << i;
+
+    for (uint32_t k = 1; k <= i; ++k) {
+        for (uint32_t mask = 1; mask < max_mask; ++mask) {
+            if (__builtin_popcount(mask) != k)
+                continue;
+
+            poly p = y[i];
+            for (uint32_t j = 0; j < i; ++j) {
+                if (mask & (1u << j)) {
+                    p.add(y[j]);
+                }
+            }
+        
+
+            uint32_t deg2 = p.algebraic_degree(nb_elem);
+
+            if (deg2 > best_deg) {
+                T_i.push_back(T_i.back());
+                continue;
+            }
+
+            if (deg2 < best_deg)
+                *test = TAB_SIZE - 1;
+
+            int t1 = *test;
+            decomposition dec2(size_in, deg2);
+
+            vector<implem> imp = dec2.add_to_op_selec(p, l, l2, size_in, deg2, nb_elem, set_op, map_xor, set_op_size, map_xor_size, test);
+
+            int t2 = *test;
+
+            if (deg2 == best_deg && t1 == t2) {
+                imp_i.insert(imp_i.end(), imp.begin(), imp.end());
+                T_i.push_back(imp_i.size());
+            } else {
+                best_deg = deg2;
+                imp_i = imp;
+                fill(T_i.begin(), T_i.end(), 0);
+                T_i.push_back(imp_i.size());
+            }
+        }
+    }
+
+    *a += nb_mult(best_deg, *test);
 }
+
 
 vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<uint32_t>> * T, vector<poly> y, vector<poly> l, vector<poly> l2, uint32_t size_in, uint32_t size_out, uint32_t nb_elem, poly_quad set_op [], pair_xor map_xor [], uint32_t set_op_size, uint32_t map_xor_size ){
     vector<vector<implem>> imp_p;

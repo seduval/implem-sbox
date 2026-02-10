@@ -804,6 +804,12 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                 }
             }
 
+            cout<<"Perm : ";
+            for (uint32_t i=0; i<size_out; i++){
+                cout<<ind_perm_to_ind_anf[i]<<",";
+            }
+            cout<<endl;
+
             vector<vector<uint32_t>> Tp;
             vector<vector<uint32_t>> * T;
             T = &Tp;
@@ -833,16 +839,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             uint32_t nb_and = nb_and_max - nb_and_min ;
             uint32_t nb_xor = 0;
             uint32_t nb_and_final = nb_and_min;
-
-            cout<<"The given s-box can be implemented by :"<<endl;
-            cout<<endl;
-            cout<<"uint32_t Sbox(uint32_t X, uint8_t size) {"<<endl;
-            cout<<"\tuint32_t x[size];"<<endl;
-            cout<<"\tfor(uint8_t b=0; b<size; b++)  {"<<endl;
-            cout<<"\t\tx[b] = X&1ul;"<<endl;
-            cout<<"\t\tX >>= 1;"<<endl;
-            cout<<"\t}"<<endl;
-            cout<<"\tuint32_t y[size];"<<endl;
             
             vector<vector<size_t>> index_combinations = generate_index_combinations(size_out);
 
@@ -858,7 +854,31 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                         #pragma omp critical
                         {
                             compteur++;
-                                       
+
+                            cout<<"The given s-box can be implemented by :"<<endl;
+                            cout<<endl;
+                            cout<<"uint32_t Sbox(uint32_t X, uint8_t size) {"<<endl;
+                            cout<<"\tuint32_t x[size];"<<endl;
+                            cout<<"\tfor(uint8_t b=0; b<size; b++)  {"<<endl;
+                            cout<<"\t\tx[b] = X&1ul;"<<endl;
+                            cout<<"\t\tX >>= 1;"<<endl;
+                            cout<<"\t}"<<endl;
+                            cout<<"\tuint32_t y[size];"<<endl;
+
+                            cout<<"T = "<<endl;
+                            for (uint32_t i=0; i<(*T).size(); i++){
+                                for (uint32_t j=0; j<(*T)[i].size(); j++){
+                                    cout<<(*T)[i][j]<<",";
+                                }
+                                cout<<endl;
+                            }
+                            cout<<endl;
+
+                            cout<<"Les indices sont : ";
+                            for (uint32_t i=0; i<used_indices.size(); i++){
+                                cout<<used_indices[i].second<<",";
+                            }
+                            cout<<endl;
 
                             uint32_t ind_to_perm [size_out];
                             for (uint32_t j=0; j<size_out; j++) {
@@ -876,6 +896,15 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                 implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
                                 real_order.push_back(bit_num_to_xor_sum(T, id, num));
                             }
+
+                            cout<<"real order : ";
+                                                    for( uint32_t i=0; i<size_out; i++){
+                                                        for (uint32_t j=0; j<real_order[i].size(); j++){
+                                                            cout<<real_order[i][j]<<",";
+                                                        }
+                                                        cout<<endl;
+                                                    }
+                                                    cout<<endl;
 
                             /* counter to print the linear operations */
                             uint32_t counter = 0;
@@ -977,43 +1006,39 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                             for (uint32_t j=0; j<size_out; j++){
                                 uint32_t i = real_order[j][0];
+                                cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
                                 if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
-                                    cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
-                                    for (uint32_t s=0; s<real_order[j].size(); s++){
+                                    cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][0]]]]<<";"<<endl;
+                                    nb_xor++;
+                                    /*for (uint32_t s=0; s<real_order[j].size(); s++){
                                         cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
                                         nb_xor++;
                                     }
-                                    cout<<";"<<endl;
-                                                                
+                                    cout<<";"<<endl;*/                        
                                 }
                                 else {
-                                    cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]]<<";"<<endl;
+                                    cout<<";"<<endl;
                                 }
                                                             
                             } 
-                        }
 
-                        if (compteur >= nb_sol){
-                            #pragma omp atomic write
-                            stop = 1;
+                            cout<<"\tuint32_t Y = 0;"<<endl;
+                            cout<<"\tfor(uint8_t b=0; b<size; b++) {"<<endl;
+                            cout<<"\t\tY ^= ((Y>>b) ^ y[b]) << b;"<<endl;
+                            cout<<"\t}"<<endl;
+                            cout<<"\treturn Y;"<<endl;
+                            cout<<"}"<<endl;
+
+                            cout<<"Nb_and = "<<nb_and_final<<endl;
+                            cout<<"Nb_xor = "<<nb_xor<<endl;
                         }
                     }
                 }
             }
- 
-            cout<<"\tuint32_t Y = 0;"<<endl;
-            cout<<"\tfor(uint8_t b=0; b<size; b++) {"<<endl;
-            cout<<"\t\tY ^= ((Y>>b) ^ y[b]) << b;"<<endl;
-            cout<<"\t}"<<endl;
-            cout<<"\treturn Y;"<<endl;
-            cout<<"}"<<endl;
 
-            cout<<"Nb_and = "<<nb_and_final<<endl;
-            cout<<"Nb_xor = "<<nb_xor<<endl;
-
-            #pragma omp critical
-            {
-                cout<<"Next permutation for thread "<<omp_get_thread_num()<<endl;
+            if (compteur >= nb_sol){
+                #pragma omp atomic write
+                stop = 1;
             }
         }
     }
