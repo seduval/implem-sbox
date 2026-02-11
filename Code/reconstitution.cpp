@@ -751,9 +751,6 @@ vector<vector<size_t>> generate_index_combinations(uint32_t size_out) {
 void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32_t nb_and_max, uint32_t nb_sol, vector<poly> Y, vector<poly> l, vector<poly> l2, poly_quad set_op [], pair_xor map_xor [], uint32_t set_op_size, uint32_t map_xor_size, vector<poly> ANF){
     
     vector<vector<poly>> vect_perm = Permutations(ANF);
-
-    vector<poly> perm; // Non truncated permutations
-
     vector<vector<uint32_t>> real_order;
 
     random_device rd;  // a seed source for the random number engine
@@ -775,6 +772,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             }
 
             vector<poly> y; //Permutation of Y
+            vector<poly> perm; // Non truncated permutations
             for (uint32_t s=0; s<vect_perm[jj].size(); s++){
                 perm.push_back(vect_perm[jj][s]);
                 y.push_back(truncate_lin(vect_perm[jj][s], size_in));
@@ -787,7 +785,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             poly zero;
             polyToNames[zero] = "0";
 
-            uint32_t ind_perm_to_ind_anf[size_out] ;
+            vector<uint32_t> ind_perm_to_ind_anf(size_out);
 
             for (uint32_t i=0; i<size_out; i++){
                 outputpolyToIndex[Y[i]] = to_string(i);
@@ -803,12 +801,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                     cerr<<"Error"<<endl;
                 }
             }
-
-            cout<<"Perm : ";
-            for (uint32_t i=0; i<size_out; i++){
-                cout<<ind_perm_to_ind_anf[i]<<",";
-            }
-            cout<<endl;
 
             vector<vector<uint32_t>> Tp;
             vector<vector<uint32_t>> * T;
@@ -865,21 +857,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                             cout<<"\t}"<<endl;
                             cout<<"\tuint32_t y[size];"<<endl;
 
-                            cout<<"T = "<<endl;
-                            for (uint32_t i=0; i<(*T).size(); i++){
-                                for (uint32_t j=0; j<(*T)[i].size(); j++){
-                                    cout<<(*T)[i][j]<<",";
-                                }
-                                cout<<endl;
-                            }
-                            cout<<endl;
-
-                            cout<<"Les indices sont : ";
-                            for (uint32_t i=0; i<used_indices.size(); i++){
-                                cout<<used_indices[i].second<<",";
-                            }
-                            cout<<endl;
-
                             uint32_t ind_to_perm [size_out];
                             for (uint32_t j=0; j<size_out; j++) {
                                 ind_to_perm[bit_num_to_real_order(T, j)] = j ;
@@ -892,19 +869,22 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                             /* Contain the actual implementations, may be a XOR sum */
                             vector<poly> implem_evaluated;
-                            for (const auto& [id, num] : index) {
+                            for (const auto& [id, num] : used_indices) {
                                 implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
                                 real_order.push_back(bit_num_to_xor_sum(T, id, num));
                             }
 
-                            cout<<"real order : ";
-                                                    for( uint32_t i=0; i<size_out; i++){
-                                                        for (uint32_t j=0; j<real_order[i].size(); j++){
-                                                            cout<<real_order[i][j]<<",";
-                                                        }
-                                                        cout<<endl;
-                                                    }
-                                                    cout<<endl;
+                            vector<poly> implemented_output (size_out) ;
+                            for (uint32_t j=0; j<size_out; j++){
+                                poly p;
+
+                                p.add(implem_evaluated[j]);
+                                for (uint32_t s=1; s<real_order[j].size(); s++){
+                                    p.add(y[real_order[j][s]]);
+                                }
+                                implemented_output[j] = p;
+                            }
+                              
 
                             /* counter to print the linear operations */
                             uint32_t counter = 0;
@@ -917,10 +897,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                 poly p;
                                 uint32_t i = real_order[j][0];
 
-                                p.add(implem_evaluated[j]);
-                                for (uint32_t s=1; s<real_order[j].size(); s++){
-                                    p.add(y[real_order[j][s]]);
-                                }
+                                p.add(implemented_output[j]);
 
                                 poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
                                 p.add(poly_in_ANF);
@@ -1008,7 +985,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                 uint32_t i = real_order[j][0];
                                 cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
                                 if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
-                                    cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][0]]]]<<";"<<endl;
+                                    cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[i]]]<<";"<<endl;
                                     nb_xor++;
                                     /*for (uint32_t s=0; s<real_order[j].size(); s++){
                                         cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
@@ -1039,6 +1016,13 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
             if (compteur >= nb_sol){
                 #pragma omp atomic write
                 stop = 1;
+            }
+
+            else {
+                #pragma omp critical
+                {
+                    cout<<"Next permutation for thread "<<omp_get_thread_num()<<endl;
+                }
             }
         }
     }
