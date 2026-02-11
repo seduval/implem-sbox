@@ -25,7 +25,6 @@ A file containing the look-up-tables of many interesting S-boxes is given in `li
  - The option ' --andmax' or '-a' allows you to choose a maximum for the number of AND gates wanted in the implementation
  - The option '--solmax' or '-s' (optionnal) allows you to choose the number of different solutions wanted, by default the programm will try to find all of them
 
- Note: We have identified a small bug which only occurs with very simple Boolean functions. It is very rare on S-boxes on more than 5 bits. We are working on a fix.
 
 ## Example execution
 
