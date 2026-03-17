@@ -22,24 +22,28 @@ We give instructions for linux-based distribution, we expect it should work for 
 
 Then, download the precomputation files. It may take up to a few hours to download the complete dataset, but you may download only files for a specific S-box size.
 
--Option 1: Download all precomputation files (total size ~50GB):
+**-Option 1**: Download all precomputation files (total size ~50GB):
 `mkdir precomputation_files`
 `cd precomputation_files`
 `wget -r -np -nH --cut-dirs=2 -A txt  https://caramba.loria.fr/sbox/precomputation_files/`
 
--Option 2: Download files for a specific S-box size (replace n_bits with the desired size, e.g., 5_bits):
+**-Option 2**: Download files for a specific S-box size (replace n_bits with the desired size, e.g., 5_bits):
 `wget -r -np -nH --cut-dirs=2 -A txt https://caramba.loria.fr/sbox/precomputation_files/n_bits/`
 
 -Special Case for 6 bits:
 If your function has degree 5, you must download both the 6_bits folder and the additional 6_bits_degree_5 folder : `wget -r -np -nH --cut-dirs=2 -A txt https://caramba.loria.fr/sbox/precomputation_files/6_bits_degree_5/`
 
 4_bits: ~18.2 KB
+
 5_bits: ~0.9 MB 
-6_bits_degree_up_to_4: ~446 MB 
+
+6_bits: ~446 MB 
+
 6_bits_degree_5: ~47.5 GB 
+
 7_bits: ~2.1 GB 
 
--Option 3: If you do not have a complete `wget`, you can access the url `https://caramba.loria.fr/sbox/precomputation_files/` and download files manually.
+**-Option 3**: If you do not have a complete `wget`, you can access the url `https://caramba.loria.fr/sbox/precomputation_files/` and download files manually.
 
 
 ## Program manual
