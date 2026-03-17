@@ -2,7 +2,16 @@
 A tool for finding good side-channel-protected circuits implementing small functions (cryptographic S-box).
 
 This tool and its purpose are described in more detailed in the TCHES article (link will be provided soon).
-A file containing the look-up-tables of many interesting S-boxes is given in `list_of_test_luts.txt`.
+A file containing the look-up-tables of all the S-boxes studied in the article is given in `list_of_test_luts.txt`.
+
+## Required Tools
+To build and run this program, ensure the following tools are installed:
+- **g++** (GNU C++ Compiler)
+- **make**
+
+The build process uses OpenMP for parallelization. Ensure your compiler supports it.
+
+We give instructions for linux-based distribution, we expect it should work for windows also.
 
 ## Install instructions
 
@@ -11,11 +20,27 @@ A file containing the look-up-tables of many interesting S-boxes is given in `li
 `cd Code`
 `make`
 
-- download the precomputation files for all S-box sizes from the archive (takes about 1h):
+Then, download the precomputation files. It may take up to a few hours to download the complete dataset, but you may download only files for a specific S-box size.
+
+-Option 1: Download all precomputation files (total size ~50GB):
 `mkdir precomputation_files`
 `cd precomputation_files`
 `wget -r -np -nH --cut-dirs=2 -A txt  https://caramba.loria.fr/sbox/precomputation_files/`
-- or download the files individually for the S-box sizes you intend to study
+
+-Option 2: Download files for a specific S-box size (replace n_bits with the desired size, e.g., 5_bits):
+`wget -r -np -nH --cut-dirs=2 -A txt https://caramba.loria.fr/sbox/precomputation_files/n_bits/`
+
+-Special Case for 6 bits:
+If your function has degree 5, you must download both the 6_bits folder and the additional 6_bits_degree_5 folder : `wget -r -np -nH --cut-dirs=2 -A txt https://caramba.loria.fr/sbox/precomputation_files/6_bits_degree_5/`
+
+4_bits: ~18.2 KB
+5_bits: ~0.9 MB 
+6_bits_degree_up_to_4: ~446 MB 
+6_bits_degree_5: ~47.5 GB 
+7_bits: ~2.1 GB 
+
+-Option 3: If you do not have a complete `wget`, you can access the url `https://caramba.loria.fr/sbox/precomputation_files/` and download files manually.
+
 
 ## Program manual
 
@@ -28,7 +53,7 @@ A file containing the look-up-tables of many interesting S-boxes is given in `li
 
 ## Example execution
 
-This execution gives an implementation of the S-box corresponding to the inverse of the Q2256 representative (6 bits, degree 3), with at most 16 AND gates. This should run within a few seconds on a laptop.
+This execution gives an implementation of the S-box corresponding to the inverse of the Q2256 representative (6 bits, degree 3), with at most 15 AND gates. This should run around 30 seconds on a laptop (in some unlucky cases, it may take a few minutes).
 
 ```
 ./implem --lut 0,1,2,3,4,7,5,6,8,16,32,58,9,19,61,37,10,17,50,43,11,18,45,54,41,52,63,34,47,48,56,39,12,29,62,49,53,57,31,13,20,27,55,36,51,33,23,25,59,42,24,21,26,22,60,44,30,14,40,38,35,46,15,28 --andmax 15 -s 1

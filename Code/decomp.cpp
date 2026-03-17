@@ -2858,13 +2858,7 @@ vector<implem> add_to_op_selec_deg_4_v1(poly y, vector<poly> l, vector<poly> set
         }
     }
 
-    if (verbose){
-        cout<<"Fin deg 4 v1 pour thread : "<<omp_get_thread_num()<<endl;
-        res = remove_duplicates(res);
-        cout<<" Thread : "<<omp_get_thread_num()<<" res_size v1 = "<<res.size()<<endl;
-    }
-
-    return res;
+    return remove_duplicates(res);
 }
 
 vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set_op_l_plus_lin, uint32_t size, uint32_t deg, uint32_t nb_elem, poly_quad set_op [], pair_xor map_xor [], uint32_t set_op_size, uint32_t map_xor_size)    {
@@ -5415,15 +5409,6 @@ vector<implem> add_to_op_selec_deg_5_v1(poly y, vector<poly> l, vector<poly> set
     vector<implem> res;
     uint32_t monomial_order [nb_elem];
 
-    if (verbose)  {
-        #pragma omp critical
-        {
-        cout<<"Début nv add_to_op_selec v1 avec précalcul pour thread "<<omp_get_thread_num()<<" et poly :"<<endl;
-        y.print_poly(size);
-        cout<<endl;
-        }
-    }
-
     poly y5 = truncate_except_deg(y, 5, size, nb_elem);
     poly y4 = truncate_except_deg(y, 4, size, nb_elem);
     poly y3 = truncate_except_deg(y, 3, size, nb_elem);
@@ -7617,13 +7602,7 @@ vector<implem> add_to_op_selec_deg_5_v1(poly y, vector<poly> l, vector<poly> set
         }
     }
 
-    res = remove_duplicates(res);
-
-    if (verbose){
-        cout<<" Thread : "<<omp_get_thread_num()<<" res_size v1 = "<<res.size()<<endl;
-    }
-
-    return res;
+    return remove_duplicates(res);
 }
 
 vector<implem> add_to_op_selec_deg_5_v2(poly y, vector<poly> l, vector<poly> set_op_l_plus_lin, uint32_t size, uint32_t deg, uint32_t nb_elem, poly_quad set_op [], pair_xor map_xor [], uint32_t set_op_size, uint32_t map_xor_size)   {
@@ -11631,12 +11610,7 @@ vector<implem> add_to_op_selec_deg_5_v2(poly y, vector<poly> l, vector<poly> set
         }
     }
 
-    res = remove_duplicates(res);
-    if (verbose){
-        cout<<" Thread : "<<omp_get_thread_num()<<" res_size v2 = "<<res.size()<<endl;
-    }
-
-    return res;
+    return remove_duplicates(res);
 }
 
 decomposition::decomposition(uint32_t size, uint32_t deg) {

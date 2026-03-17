@@ -33,7 +33,7 @@ uint32_t nb_bits_to_size_set (uint32_t size){
 
 void parse_file_and_create_set(uint32_t size, poly_quad set_op []) { // To create the tab that contains the quadratic operations
     
-    string filename = string("precomputation_files/precomputed_set_") + to_string(size) + string(".txt");
+    string filename = string("precomputation_files/") + to_string(size) + ("_bits/precomputed_set_") + to_string(size) + string(".txt");
 
     FILE* fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
@@ -109,7 +109,7 @@ uint32_t nb_bits_to_size_map_xor (uint32_t size){
 
 void parse_file_and_create_map_xor(uint32_t size, pair_xor map_xor []) {
     
-    string filename = string("precomputation_files/precomputed_map_xor_") + to_string(size) + string(".txt");
+    string filename = string("precomputation_files/") + to_string(size) + ("_bits/precomputed_map_xor_") + to_string(size) + string(".txt");
 
     FILE* fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
@@ -175,7 +175,7 @@ int64_t find_map (poly_quad val, pair_xor v [], uint64_t look_start, uint64_t lo
 
 vector<poly> create_poly_lin(uint32_t size, uint32_t nb_elem)    {
 
-    string filename = string("precomputation_files/precomputed_lin_") + to_string(size) + string(".txt");
+    string filename = string("precomputation_files/") + to_string(size) + ("_bits/precomputed_lin_") + to_string(size) + string(".txt");
 
     FILE* fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
@@ -198,7 +198,7 @@ vector<poly> create_poly_lin(uint32_t size, uint32_t nb_elem)    {
 
 vector<poly> create_set_op_l_plus_lin(uint32_t size)    {
 
-    string filename = string("precomputation_files/precomputed_set_op_l_plus_lin_") + to_string(size) + string(".txt");
+    string filename = string("precomputation_files/") + to_string(size) + ("_bits/precomputed_set_op_l_plus_lin_") + to_string(size) + string(".txt");
 
     FILE* fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
@@ -221,7 +221,7 @@ vector<poly> create_set_op_l_plus_lin(uint32_t size)    {
 
 vector<poly> create_map_xor_l_plus_lin(uint32_t size)    {
 
-    string filename = string("precomputation_files/precomputed_map_xor_l_plus_lin_") + to_string(size) + string(".txt");
+    string filename = string("precomputation_files/") + to_string(size) + ("_bits/precomputed_map_xor_l_plus_lin_") + to_string(size) + string(".txt");
 
     FILE* fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
@@ -245,7 +245,7 @@ vector<poly> create_map_xor_l_plus_lin(uint32_t size)    {
 vector<implem_deg5_4> parse_file_and_create_sol(uint32_t ent_p) { 
     
     uint32_t m = ent_p/100000; //To search in the right file
-    string filename = string("precomputation_files/precomputed_sol_deg5_4/precomputed_sol_deg5_4_" + to_string(m) + ".txt");
+    string filename = string("precomputation_files/precomputed_6_bits_degree_5/precomputed_sol_deg5_4_" + to_string(m) + ".txt");
 
     FILE* fp = fopen(filename.c_str(), "r");
     if (fp == NULL) {
