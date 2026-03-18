@@ -22,13 +22,17 @@ We give instructions for linux-based distribution, we expect it should work for 
 
 Then, download the precomputation files. It may take up to a few hours to download the complete dataset, but you may download only files for a specific S-box size.
 
-**-Option 1**: Download all precomputation files (total size ~50GB):
+For all cases, start with:
 `mkdir precomputation_files`
 `cd precomputation_files`
+
+Then, 
+
+**-Option 1**: Download all precomputation files (total size ~50GB):
 `wget -r -np -nH --cut-dirs=2 -A txt  https://caramba.loria.fr/sbox/precomputation_files/`
 
 **-Option 2**: Download files for a specific S-box size (replace n_bits with the desired size, e.g., 5_bits):
-`wget -r -np -nH --cut-dirs=2 -A txt https://caramba.loria.fr/sbox/precomputation_files/n_bits/`
+`wget -r -np -nH --cut-dirs=2 -A txt https://caramba.loria.fr/sbox/precomputation_files/5_bits/`
 
 -Special Case for 6 bits:
 If your function has degree 5, you must download both the 6_bits folder and the additional 6_bits_degree_5 folder : `wget -r -np -nH --cut-dirs=2 -A txt https://caramba.loria.fr/sbox/precomputation_files/6_bits_degree_5/`
@@ -50,9 +54,9 @@ If your function has degree 5, you must download both the 6_bits folder and the 
 
  - The option '--lut' or '-l' requires the values of the LUT separated by ','
  - For example: '-l 0,1,5,4,8,3,7,2'
- - The number of values must be a power of 2 beetween 16 and 64
+ - The number of values must be a power of 2 between 16 and 64
  - The option ' --andmax' or '-a' allows you to choose a maximum for the number of AND gates wanted in the implementation
- - The option '--solmax' or '-s' (optionnal) allows you to choose the number of different solutions wanted, by default the programm will try to find all of them
+ - The option '--solmax' or '-s' (optional) allows you to choose the number of different solutions wanted, by default the program will try to find all of them
 
 
 ## Example execution
