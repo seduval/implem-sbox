@@ -1,12 +1,12 @@
 CXX = g++
-CXXFLAGS = -Wextra -O3 -fopenmp -march=native -ftree-loop-im -ftree-loop-ivcanon -fvariable-expansion-in-unroller
+CXXFLAGS = -Wextra -O3 -fopenmp -march=native -ftree-loop-im -ftree-loop-ivcanon -fvariable-expansion-in-unroller -g -MMD -MP
 
 SRC = sbox.cpp poly.cpp precomputation.cpp decomp.cpp reconstitution.cpp test_main.cpp
 OBJ = $(SRC:.cpp=.o)
 
 PROGRAM = implem
 
-all: slp $(PROGRAM)
+all: $(PROGRAM)
 
 $(PROGRAM): $(OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -15,11 +15,9 @@ $(PROGRAM): $(OBJ)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(PROGRAM) *.o
+	rm -f $(PROGRAM) *.o *.d
 
 launch: clean all
 	./$(PROGRAM)
 
-slp :
-	$(CXX) $(CXXFLAGS) my_slp_heuristic_for_lin.cpp -o my_slp_heuristic_lin
-	$(CXX) $(CXXFLAGS) my_slp_heuristic_for_quad.cpp -o my_slp_heuristic_quad
+-include $(OBJ:.o=.d)

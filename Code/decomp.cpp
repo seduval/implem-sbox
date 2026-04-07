@@ -78,6 +78,7 @@ vector<implem> add_to_op_selec_deg_1(poly y, vector<poly> l, vector<poly> set_op
 
 vector<implem> add_to_op_selec_deg_2_size_4_5_6_v1(poly y, vector<poly> l, vector<poly> set_op_l_plus_lin, uint32_t size, uint32_t deg, uint32_t nb_elem, poly_quad set_op [], pair_xor map_xor [], uint32_t set_op_size, uint32_t map_xor_size)    {
     vector<implem> res;
+    cout<<"On a du degré 2"<<endl;
     
     poly_quad pq1 = poly_to_poly_quad(y,size, nb_elem);
                     
@@ -738,7 +739,7 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                             uint32_t nn = pp.first.algebraic_degree(nb_elem);
     
                             if (mm <=2 && nn<=2)   {
-                            // y = (p.first + pp.first) * s[i] + pp.second
+                            // y = s[i] * (p.first + pp.first) + pp.second
     
                                 vector<implem> v1;
     
@@ -11701,7 +11702,7 @@ void insert_to_size_vect (vector<implem> vect_to_add, vector<vector<implem>> * V
     }
 }
 
-poly xor_from_mask(uint32_t mask, const vector<poly>& y) {
+/*poly xor_from_mask(uint32_t mask, const vector<poly>& y) {
     poly res;
     bool first = true;
     for (uint32_t i = 0; i < y.size(); i++) {
@@ -11715,56 +11716,32 @@ poly xor_from_mask(uint32_t mask, const vector<poly>& y) {
         }
     }
     return res;
-}
+}*/
 
-/*void process_output(uint32_t i, vector<poly> y,uint32_t size_in, uint32_t nb_elem, vector<poly> l,vector<poly> l2,poly_quad set_op[], pair_xor map_xor[],uint32_t set_op_size,uint32_t map_xor_size,uint32_t* test,uint32_t* a,vector<implem>& imp_i, vector<uint32_t>& T_i) {
-    *test = TAB_SIZE - 1;
-
-    uint32_t best_deg = y[i].algebraic_degree(nb_elem);
-    decomposition dec(size_in, best_deg);
-
-    imp_i = dec.add_to_op_selec(y[i], l, l2, size_in, best_deg, nb_elem, set_op, map_xor,set_op_size, map_xor_size, test);
-
-    T_i.push_back(imp_i.size());
-
-    uint32_t max_mask = 1u << (i + 1);
-
-    for (uint32_t mask = 1; mask < max_mask; mask++) {
-
-        if (!(mask & (1u << i)) || mask == (1u << i))
-            continue;
-
-        poly p = xor_from_mask(mask, y);
-        uint32_t deg2 = p.algebraic_degree(nb_elem);
-
-        if (deg2 > best_deg) {
-            T_i.push_back(T_i.back());
-            continue;
-        }
-
-        if (deg2 < best_deg)
-            *test = TAB_SIZE - 1;
-
-        int t1 = *test;
-        decomposition dec2(size_in, deg2);
-
-        vector<implem> imp = dec2.add_to_op_selec(p, l, l2, size_in, deg2, nb_elem, set_op, map_xor,set_op_size, map_xor_size, test);
-
-        int t2 = *test;
-
-        if (deg2 == best_deg && t1 == t2) {
-            imp_i.insert(imp_i.end(), imp.begin(), imp.end());
-            T_i.push_back(imp_i.size());
-        } else {
-            best_deg = deg2;
-            imp_i = imp;
-            fill(T_i.begin(), T_i.end(), 0);
-            T_i.push_back(imp_i.size());
-        }
+void genComb(int start, int k, int remaining, vector<int>& current, vector<vector<int>>& result) {
+    if (remaining == 0) {
+        result.push_back(current);
+        return;
     }
 
-    *a += nb_mult(best_deg, *test);
-}*/
+    for (int i = start; i <= k - remaining; i++) {
+        current.push_back(i);
+        genComb(i + 1, k, remaining - 1, current, result);
+        current.pop_back();
+    }
+}
+
+// Generation of integer vectors representing the sequence of linear combinations of output bits that can be implemented. If k is 2, the possible combinations are {0}, {1} and {0,1}.
+vector<vector<int>> generate_combinations(int k) {
+    vector<vector<int>> result;
+    vector<int> cur;
+
+    for (int i = 1; i <= k; i++) {
+        genComb(0, k, i, cur, result);
+    }
+
+    return result;
+}
 
 void process_output(uint32_t i, vector<poly> y, uint32_t size_in, uint32_t nb_elem, vector<poly> l, vector<poly> l2, poly_quad set_op[], pair_xor map_xor[], uint32_t set_op_size, uint32_t map_xor_size, uint32_t* test, uint32_t* a, vector<implem>& imp_i, vector<uint32_t>& T_i) {
     *test = TAB_SIZE - 1;
@@ -11776,20 +11753,27 @@ void process_output(uint32_t i, vector<poly> y, uint32_t size_in, uint32_t nb_el
 
     T_i.push_back(imp_i.size());
 
-    uint32_t max_mask = 1u << i;
+    vector<vector<int>> combs = generate_combinations(i);
 
-    for (uint32_t k = 1; k <= i; ++k) {
-        for (uint32_t mask = 1; mask < max_mask; ++mask) {
-            if (__builtin_popcount(mask) != k)
-                continue;
+    for (auto& comb : combs) {
 
-            poly p = y[i];
-            for (uint32_t j = 0; j < i; ++j) {
-                if (mask & (1u << j)) {
-                    p.add(y[j]);
-                }
+        poly p;
+        bool first = true;
+
+        for (int idx : comb) {
+            if (first) {
+                p = y[idx];
+                first = false;
+            } else {
+                POLY_ADD(p, y[idx], p);
             }
-        
+        }
+
+        if (first) {
+            p = y[i];
+        } else {
+            POLY_ADD(p, y[i], p);
+        }
 
             uint32_t deg2 = p.algebraic_degree(nb_elem);
 
@@ -11818,7 +11802,6 @@ void process_output(uint32_t i, vector<poly> y, uint32_t size_in, uint32_t nb_el
                 T_i.push_back(imp_i.size());
             }
         }
-    }
 
     *a += nb_mult(best_deg, *test);
 }
@@ -11834,10 +11817,13 @@ vector<vector<implem>> create_sets(uint32_t * a, uint32_t * test, vector<vector<
         vector<uint32_t> T_i;
 
         process_output(i, y, size_in, nb_elem,l, l2, set_op, map_xor,set_op_size, map_xor_size,test, a, imp_i, T_i);
+        
         #pragma omp critical 
         {
             insert_to_size_vect(imp_i, imp, T_i, T);
+            
         }
     }
+        
     return *imp;
 }

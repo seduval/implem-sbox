@@ -16,6 +16,11 @@ uint64_t most_significant_bit(poly_quad p);
 // Compute the rank of a family of quadratic polynomials
 uint32_t Rank(set<poly_quad> op_selec);
 
+void genComb(int start, int k, int remaining, vector<int>& current, vector<vector<int>>& result);
+
+// Generation of integer vectors representing the sequence of linear combinations of output bits that can be implemented. If k is 2, the possible combinations are {0}, {1} and {0,1}.
+vector<vector<int>> generate_combinations(int k);
+
 typedef vector<implem> (*fptr)(poly, vector<poly>, vector<poly>, uint32_t, uint32_t, uint32_t, poly_quad [], pair_xor [], uint32_t, uint32_t );
 
 class decomposition {

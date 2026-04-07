@@ -234,31 +234,6 @@ vector<vector<poly>> Permutations(const vector<poly>& v) {
     return result;
 }
 
-void genComb(int start, int k, int remaining, vector<int>& current, vector<vector<int>>& result) {
-    if (remaining == 0) {
-        result.push_back(current);
-        return;
-    }
-
-    for (int i = start; i <= k - remaining; i++) {
-        current.push_back(i);
-        genComb(i + 1, k, remaining - 1, current, result);
-        current.pop_back();
-    }
-}
-
-// Generation of integer vectors representing the sequence of linear combinations of output bits that can be implemented. If k is 2, the possible combinations are {0}, {1} and {0,1}.
-vector<vector<int>> generate_combinations(int k) {
-    vector<vector<int>> result;
-    vector<int> cur;
-
-    for (int i = 1; i <= k; i++) {
-        genComb(0, k, i, cur, result);
-    }
-
-    return result;
-}
-
 /** Return the output bit of the permutation that is implemented **/
 uint32_t bit_num_to_real_order(const vector<vector<uint32_t>>* T, uint32_t bit_num){
     return log2((*T)[bit_num].size());
@@ -697,12 +672,47 @@ bool try_incremental_merge(set<poly_quad>& current_set, uint32_t& current_rank, 
     uint32_t new_rank = Rank(merged_set);
 
     if (new_rank > nb_and_max) {
+        //cout<<"Le rang = "<<new_rank<<" dépasse la borne, on coupe"<<endl;
         return false;
     }
+
+    //cout<<"Le rang= "<<new_rank<<"  ne dépasse pas la borne, on continue"<<endl;
 
     current_set = merged_set;
     current_rank = new_rank;
     return true;
+}
+
+bool backtrack(const vector<vector<implem>>& imp, const vector<size_t>& indices, size_t depth, set<poly_quad>& current_set, uint32_t& current_rank, uint32_t nb_and_max, vector<pair<size_t, size_t>>& used_indices) {
+    if (depth == indices.size()) {
+        return true;
+    }
+
+    size_t idx = indices[depth];
+
+    for (size_t j = 0; j < imp[idx].size(); j++) {
+
+        const set<poly_quad>& next_set = imp[idx][j].quad_sol;
+
+        set<poly_quad> temp_set = current_set;
+        uint32_t temp_rank = current_rank;
+
+        if (!try_incremental_merge(temp_set, temp_rank, next_set, nb_and_max)) {
+            continue; // prune
+        }
+
+        used_indices.emplace_back(idx, j);
+
+        if (backtrack(imp, indices, depth + 1, temp_set, temp_rank, nb_and_max, used_indices)) {
+            current_set = temp_set;
+            current_rank = temp_rank; 
+            return true;
+        }
+
+        used_indices.pop_back(); // backtrack
+    }
+
+    return false;
 }
 
 bool test_combination(const vector<vector<implem>>& imp, const vector<size_t>& indices, uint32_t nb_and_max, vector<pair<size_t, size_t>>& used_indices, set<poly_quad>& final_set, uint32_t& final_rank) {
@@ -710,32 +720,14 @@ bool test_combination(const vector<vector<implem>>& imp, const vector<size_t>& i
     uint32_t current_rank = 0;
     used_indices.clear();
 
-    for (size_t i = 0; i < indices.size(); i++) {
-        size_t idx = indices[i];
-        bool found_valid_merge = false;
+    bool success = backtrack(imp, indices, 0 ,current_set, current_rank, nb_and_max,used_indices);
 
-        for (size_t j = 0; j < imp[idx].size(); j++) {
-            const set<poly_quad>& next_set = imp[idx][j].quad_sol;
-
-            set<poly_quad> temp_set = current_set;
-            uint32_t temp_rank = current_rank;
-            if (try_incremental_merge(temp_set, temp_rank, next_set, nb_and_max)) {
-                current_set = temp_set;
-                current_rank = temp_rank;
-                used_indices.emplace_back(idx, j);
-                found_valid_merge = true;
-                break;
-            }
-        }
-
-        if (!found_valid_merge) {
-            return false; // Coupure précoce si aucun merge valide
-        }
+    if (success) {
+        final_set = current_set;
+        final_rank = current_rank;
     }
 
-    final_set = current_set;
-    final_rank = current_rank;
-    return true;
+    return success;
 }
 
 vector<vector<size_t>> generate_index_combinations(uint32_t size_out) {
@@ -751,7 +743,7 @@ vector<vector<size_t>> generate_index_combinations(uint32_t size_out) {
 void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32_t nb_and_max, uint32_t nb_sol, vector<poly> Y, vector<poly> l, vector<poly> l2, poly_quad set_op [], pair_xor map_xor [], uint32_t set_op_size, uint32_t map_xor_size, vector<poly> ANF){
     
     vector<vector<poly>> vect_perm = Permutations(ANF);
-    vector<vector<uint32_t>> real_order;
+    vector<vector<uint32_t>> real_order (size_out);
 
     random_device rd;  // a seed source for the random number engine
     mt19937 gen(rd()); // mersenne_twister_engine seeded with rd()
@@ -868,21 +860,25 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                             }
 
                             /* Contain the actual implementations, may be a XOR sum */
-                            vector<poly> implem_evaluated;
-                            for (const auto& [id, num] : used_indices) {
-                                implem_evaluated.push_back(evaluate_implem(imp[id][num], nb_elem));
-                                real_order.push_back(bit_num_to_xor_sum(T, id, num));
+                            vector<poly> implem_evaluated (size_out);
+                            for (uint32_t j=0; j<used_indices.size(); j++) {
+                                real_order[j] = bit_num_to_xor_sum(T, j, used_indices[j].second);
+                                implem_evaluated[real_order[j][0]] = evaluate_implem(imp[j][used_indices[j].second], nb_elem);
                             }
 
                             vector<poly> implemented_output (size_out) ;
-                            for (uint32_t j=0; j<size_out; j++){
+                            for (const auto& [id, num] : index) {
+                                uint32_t j = real_order[id][0];
+                                
                                 poly p;
 
                                 p.add(implem_evaluated[j]);
-                                for (uint32_t s=1; s<real_order[j].size(); s++){
-                                    p.add(y[real_order[j][s]]);
+                               
+                                for (uint32_t s=1; s<real_order[id].size(); s++){
+                                    p.add(implemented_output[real_order[id][s]]);
                                 }
                                 implemented_output[j] = p;
+
                             }
                               
 
@@ -897,7 +893,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                 poly p;
                                 uint32_t i = real_order[j][0];
 
-                                p.add(implemented_output[j]);
+                                p.add(implemented_output[i]);
 
                                 poly poly_in_ANF = ANF[ind_perm_to_ind_anf[i]];
                                 p.add(poly_in_ANF);
@@ -986,12 +982,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                                 cout<<"\ty["<<outputpolyToIndex[y[i]]<<"] = ty"<<outputpolyToIndex[y[i]];
                                 if (linear_parts_of_ob[ind_perm_to_ind_anf[i]] != zero){
                                     cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[i]]]<<";"<<endl;
-                                    nb_xor++;
-                                    /*for (uint32_t s=0; s<real_order[j].size(); s++){
-                                        cout<<" ^ " <<polyToNames[linear_parts_of_ob[ind_perm_to_ind_anf[real_order[j][s]]]];
-                                        nb_xor++;
-                                    }
-                                    cout<<";"<<endl;*/                        
+                                    nb_xor++;                       
                                 }
                                 else {
                                     cout<<";"<<endl;
