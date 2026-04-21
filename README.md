@@ -41,7 +41,7 @@ If your function has degree 5, you must download both the 6_bits folder and the 
 
 7_bits: ~2.1 GB 
 
-**-Option 3**: If you do not have a complete `wget`, you can access the url `https://caramba.loria.fr/sbox/precomputation_files/` and download files manually.
+**-Option 3**: If you do not have a complete `wget`, you can access the url `https://caramba.loria.fr/sbox/precomputation_files/` and download files manually. They should be put into a new directory called 'precomputation_files' inside the 'Code' directory.
 
 
 ## Program manual
