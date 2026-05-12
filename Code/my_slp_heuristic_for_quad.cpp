@@ -2,6 +2,20 @@
 
 MIT License
 
+Copyright (c) 2026 sébastien Duval, Marie Bolzer
+
+May 2026
+This code is a modified version of code available at :
+
+https://github.com/rub-hgi/shorter_linear_slps_for_mds_matrices
+
+The modifications introduced in this version include:
+  - Changes to the output style and notation conventions (e.g. using "q" instead of "x" in displayed results).
+  - Additional support for matrices with non-maximal rank.
+*/
+
+/*MIT License
+
 Copyright (c) 2017 Thorsten Kranz, Gregor Leander, Ko Stoffelen, Friedrich Wiemer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -103,7 +117,7 @@ long long int Base[MaxBaseSize];
 string Program[MaxBaseSize];
 unsigned int BaseSize;
 unsigned int TargetsFound;
-bool Done[MaxBaseSize]; // <- ajout
+bool Done[MaxBaseSize]; // <- added
 int nb_intermediate;
 int nb_equal_variables;
 
@@ -134,8 +148,6 @@ int main(int argc, char *argv[]) {
             counter++;
             if (!EasyMove()) PickNewBaseElement();
         }
-        /*cout << "SLP Heuristic XorCount: " << XorCount << endl;
-        cout << "SLP: " << endl << endl;*/
         cout<<"XorCount: "<<XorCount<<endl;
         for (unsigned int j = 0; j < XorCount + nb_equal_variables; j++) {
             cout <<"\tuint32_t "<<Program[NumInputs + j] <<";"<<endl;
@@ -231,7 +243,7 @@ bool EasyMove() {
         BaseSize++;
         XorCount++;
         TargetsFound++;
-        Done[t] = true; // <- marque comme traitée
+        Done[t] = true; // <- treated
     }
     else {
         string a;
@@ -245,7 +257,7 @@ bool EasyMove() {
         BaseSize++;
         nb_equal_variables++;
         TargetsFound++;
-        Done[t] = true; // <- marque comme traitée
+        Done[t] = true; // <- treated
     }
     return true;
 }
@@ -266,15 +278,11 @@ void PickNewBaseElement() {
     for (unsigned int i = 0; i < BaseSize - 1; i++) {
         for (unsigned int j = i+1; j < BaseSize; j++) {
             NewBase = Base[i] ^ Base[j];
-            //sanity check
-            //if (NewBase == 0) { cout << "a base is 0, should't happen " << endl; exit(0); }
             //if NewBase is not new continue
             if (is_base(NewBase)) continue;
             //if NewBase is target then choose it
             easytarget = false;
             if (is_target(NewBase)) {
-                /*cout << "shouldn't find an easy target here " << endl;
-                exit(0);*/
                 easytarget = true;
                 besti = i;
                 bestj = j;
@@ -373,11 +381,6 @@ bool is_target(long long int x) {
 }
 
 bool is_base(long long int x) {
-    //sanity check, shouldn't ask if 0 is base
-    /*if (x==0) {
-        cout << "asking if 0 is in Base " << endl;
-        exit(0);
-    }*/
 
     for (unsigned int i = 0; i < BaseSize; i++) {
         if (x == Base[i]) {

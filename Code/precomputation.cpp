@@ -48,21 +48,21 @@ void parse_file_and_create_set(uint32_t size, poly_quad set_op []) { // To creat
     while (getline(file, line)) {
         size_t pos = line.find("{");
         while (pos != string::npos) {
-            size_t endPos = line.find("}", pos); //Position du caractère '}'
+            size_t endPos = line.find("}", pos);
             if (endPos == string::npos) 
                 break;
 
-            string set_str = line.substr(pos + 1, endPos - pos - 1); //On extrait la chaîne de caractère se trouvant entre la position de '{' et de '}'
+            string set_str = line.substr(pos + 1, endPos - pos - 1); 
 
-            size_t pos_valeur = set_str.find_first_of("0123456789"); //Position de la première valeur
+            size_t pos_valeur = set_str.find_first_of("0123456789");
             while (pos_valeur != string::npos) { 
-                size_t pos_virgule = set_str.find(",", pos_valeur); //position du caractère ','
+                size_t pos_virgule = set_str.find(",", pos_valeur);
                 if (pos_virgule == string::npos)
                     pos_virgule = set_str.size();
                 
-                poly_quad value = stoul(set_str.substr(pos_valeur, pos_virgule - pos_valeur)); //On convertit la chaîne de caractère situé entre chaque virgule en valeur  
+                poly_quad value = stoul(set_str.substr(pos_valeur, pos_virgule - pos_valeur)); 
 
-                set_op[it] = value; // on insère la valeur au set
+                set_op[it] = value;
                 it++;
 
                 pos_valeur = set_str.find_first_of("0123456789", pos_virgule + 1);

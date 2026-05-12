@@ -157,7 +157,6 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                     else {
                         indice1 = find_map(pq1, map_xor, 0, map_xor_size);
                         if (indice1 == -1)  {
-                            //cout<<"On a des solutions pour v1 avec p1.first quadratique"<<endl;
                             continue;
                         }
                         else {
@@ -182,7 +181,6 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                     vector<implem> v2;
 
                     if (m==2)   {
-                    // si p1.second est de deg 2
 
                         poly_quad pq2 = poly_to_poly_quad(p1.second ,size, nb_elem);
                             
@@ -198,7 +196,6 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                         else {
                             indice2 = find_map(pq2, map_xor, 0, map_xor_size);
                             if (indice2 == -1)  {
-                                //cout<<"On a des solutions pour v1 avec p1.second quadratique"<<endl;
                                 continue;
                             }
                             else {
@@ -262,7 +259,6 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                         }
                     }
                     else {
-                    // si p1.second est linéaire (ie = 0)
                         for (uint32_t i1 = 0; i1<v1.size(); i1++){
                             res.push_back(v1[i1]);
                         }
@@ -308,7 +304,6 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                             else {
                                 indice1 = find_map(pq1, map_xor, 0, map_xor_size);
                                 if (indice1 == -1)  {
-                                    //cout<<"On a des solutions pour v1 avec p1.first quadratique"<<endl;
                                     continue;
                                 }
                                 else {
@@ -372,7 +367,6 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                             }
 
                             if (m2==2)   {
-                            // si p1.second est de deg 2
                                 poly P3 = truncate_lin(p2.second, size);
                                 poly_quad pq3 = poly_to_poly_quad(P3 ,size, nb_elem);
 
@@ -482,7 +476,6 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                             }
 
                             else {
-                            // si p2.second est linéaire (ie = 0)
                             
                                 for (uint32_t it1 = 0; it1<v1.size(); it1++) {
                                                                         
@@ -953,7 +946,7 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                         imp.op_sol.push_back(op2);
                         imp.quad_sol.insert(op_q2);
                         poly D; 
-                        POLY_ADD(map_xor_l_plus_lin[i], P1, D); //Pour récupérer le delta linéaire
+                        POLY_ADD(map_xor_l_plus_lin[i], P1, D);  
                         imp.op_sol.push_back(D);
                         imp.formula = "";
                         v1.push_back(imp);
@@ -1151,7 +1144,7 @@ vector<implem> add_to_op_selec_deg_3_v1(poly y, vector<poly> l, vector<poly> set
                                     imp.op_sol.push_back(op2);
                                     imp.quad_sol.insert(op_q2);
                                     poly D; 
-                                    POLY_ADD(map_xor_l_plus_lin[i], P1, D); //Pour récupérer le delta linéaire
+                                    POLY_ADD(map_xor_l_plus_lin[i], P1, D);  
                                     imp.op_sol.push_back(D);
                                     imp.formula = "";
                                     v1.push_back(imp);
@@ -1347,11 +1340,11 @@ vector<implem> add_to_op_selec_deg_3_v2(poly y, vector<poly> l, vector<poly> set
                 uint32_t m = p1.second.algebraic_degree(nb_elem);
                 uint32_t n = p1.first.algebraic_degree(nb_elem);
 
-                if (m<=2 || n<2)    { // Cas traité dans la v1
+                if (m<=2 || n<2)    { // Traited in v1
                     continue;
                 }
                 else {
-                // On traite le cas où y = p1.first * l[i] + p2.first * l[i2] + p2.second
+                // y = p1.first * l[i] + p2.first * l[i2] + p2.second
 
                     for (uint32_t i2=0; i2<l.size(); i2++) {
                         for (uint32_t j2=0; j2<size; j2++){
@@ -1453,7 +1446,6 @@ vector<implem> add_to_op_selec_deg_3_v2(poly y, vector<poly> l, vector<poly> set
                                     }
 
                                     if (m2==2)   {
-                                    // si p1.second est de deg 2
                                         poly P3 = truncate_lin(p2.second, size);
                                         poly_quad pq3 = poly_to_poly_quad(P3 ,size, nb_elem);
 
@@ -1559,7 +1551,6 @@ vector<implem> add_to_op_selec_deg_3_v2(poly y, vector<poly> l, vector<poly> set
                                     }
 
                                     else {
-                                    // si p2.second est linéaire (ie = 0)
                                     
                                         set<set<poly_quad>> set_quad;
                                         for (uint32_t it1 = 0; it1<v1.size(); it1++) {
@@ -1605,438 +1596,6 @@ vector<implem> add_to_op_selec_deg_3_v2(poly y, vector<poly> l, vector<poly> set
                                         }       
                                     }
                                 }
-
-                                /*else {// p2.second est de deg 3, on essaye de le diviser par p1.first ou p2.first
-
-                                    for (uint32_t k=0; k<size; k++){
-
-                                        create_monomial_order(monomial_order, nb_elem, size, k);
-
-                                        pair<poly,poly> p3;
-                                        p3 = poly_div(p2.second, p1.first, monomial_order, size, nb_elem);
-
-                                        uint32_t m3 = p3.second.algebraic_degree(nb_elem);
-
-                                        if (m3 > 2){
-
-                                            p3 = poly_div(p2.second, p2.first, monomial_order, size, nb_elem);
-
-                                            uint32_t m4 = p3.second.algebraic_degree(nb_elem);
-
-                                            if (m4 > 2){
-                                                continue;
-                                            }
-                                            else {
-                                            // On traite le cas où y = p1.first * l[i] + p2.first * (l[i2] + p3.first) + p3.second
-                                                poly P1;
-                                                P1 = truncate_lin(p1.first, size);
-                                                poly P1_lin;
-                                                POLY_ADD(P1, p1.first, P1_lin);
-                                                poly_quad pq1 = poly_to_poly_quad(P1 ,size, nb_elem);
-
-                                                vector<implem> v1;
-                            
-                                                int32_t indice1 = find_set(pq1, set_op, 0, set_op_size);
-
-                                                if (indice1 != -1)   {
-                                                    implem imp;
-                                                    imp.op_sol.push_back(P1);
-                                                    imp.op_sol.push_back(P1_lin);
-                                                    imp.op_sol.push_back(l[i]);
-                                                    imp.quad_sol.insert(pq1);
-                                                    imp.formula = "";
-                                                    v1.push_back(imp);
-                                                }
-                                                else {
-                                                    indice1 = find_map(pq1, map_xor, 0, map_xor_size);
-                                                    if (indice1 == -1)  {
-                                                        continue;
-                                                    }
-                                                    else {
-                                                        for (uint32_t m=0; m<10; m++)   {
-                                                            implem imp;
-                                                            poly_quad op_q1 = map_xor[indice1].second[m][0];
-                                                            poly op1(op_q1,size);
-                                                            imp.op_sol.push_back(op1);
-                                                            imp.quad_sol.insert(op_q1);
-                                                            poly_quad op_q2 = map_xor[indice1].second[m][1];
-                                                            poly op2(op_q2,size);
-                                                            imp.op_sol.push_back(op2);
-                                                            imp.quad_sol.insert(op_q2);
-                                                            imp.op_sol.push_back(P1_lin);
-                                                            imp.op_sol.push_back(l[i]);
-                                                            imp.formula = "";
-                                                            v1.push_back(imp);
-                                                        }
-                                                    }
-                                                }
-
-                                                poly P2;
-                                                P2 = truncate_lin(p2.first, size);
-                                                poly P2_lin;
-                                                POLY_ADD(P2, p2.first, P2_lin);
-                                                poly_quad pq2 = poly_to_poly_quad(P2 ,size, nb_elem);
-
-                                                vector<implem> v2;
-                            
-                                                int32_t indice2 = find_set(pq2, set_op, 0, set_op_size);
-
-                                                if (indice2 != -1)   {
-                                                    implem imp;
-                                                    imp.op_sol.push_back(P2);
-                                                    imp.op_sol.push_back(P2_lin);
-                                                    imp.quad_sol.insert(pq2);
-                                                    imp.formula = "";
-                                                    v2.push_back(imp);
-                                                }
-                                                else {
-                                                    indice2 = find_map(pq2, map_xor, 0, map_xor_size);
-                                                    if (indice2 == -1)  {
-                                                        continue;
-                                                    }
-                                                    else {
-                                                        for (uint32_t m=0; m<10; m++)   {
-                                                            implem imp;
-                                                            poly_quad op_q1 = map_xor[indice2].second[m][0];
-                                                            poly op1(op_q1,size);
-                                                            imp.op_sol.push_back(op1);
-                                                            imp.quad_sol.insert(op_q1);
-                                                            poly_quad op_q2 = map_xor[indice2].second[m][1];
-                                                            poly op2(op_q2,size);
-                                                            imp.op_sol.push_back(op2);
-                                                            imp.quad_sol.insert(op_q2);
-                                                            imp.op_sol.push_back(P2_lin);
-                                                            imp.formula = "";
-                                                            v2.push_back(imp);
-                                                        }
-                                                    }
-                                                }
-
-                                                poly p;
-                                                POLY_ADD(l[i2], p3.first, p);
-                                                poly P3;
-                                                P3 = truncate_lin(p, size);
-                                                poly P3_lin;
-                                                POLY_ADD(P3, p, P3_lin);
-                                                poly_quad pq3 = poly_to_poly_quad(P3 ,size, nb_elem);
-
-                                                vector<implem> v3;
-                            
-                                                int32_t indice3 = find_set(pq3, set_op, 0, set_op_size);
-
-                                                if (indice3 != -1)   {
-                                                    implem imp;
-                                                    imp.op_sol.push_back(P3);
-                                                    imp.op_sol.push_back(P3_lin);
-                                                    imp.quad_sol.insert(pq3);
-                                                    imp.formula = "";
-                                                    v3.push_back(imp);
-                                                }
-                                                else {
-                                                    indice3 = find_map(pq3, map_xor, 0, map_xor_size);
-                                                    if (indice3 == -1)  {
-                                                        continue;
-                                                    }
-                                                    else {
-                                                        for (uint32_t m=0; m<10; m++)   {
-                                                            implem imp;
-                                                            poly_quad op_q1 = map_xor[indice3].second[m][0];
-                                                            poly op1(op_q1,size);
-                                                            imp.op_sol.push_back(op1);
-                                                            imp.quad_sol.insert(op_q1);
-                                                            poly_quad op_q2 = map_xor[indice3].second[m][1];
-                                                            poly op2(op_q2,size);
-                                                            imp.op_sol.push_back(op2);
-                                                            imp.quad_sol.insert(op_q2);
-                                                            imp.op_sol.push_back(P3_lin);
-                                                            imp.formula = "";
-                                                            v3.push_back(imp);
-                                                        }
-                                                    }
-                                                }
-
-                                                if (m4 == 0){
-
-                                                }
-
-                                                else {
-
-                                                    poly P4;
-                                                    P4 = truncate_lin(p3.second, size,);
-                                                    poly_quad pq4 = poly_to_poly_quad(P4 ,size, nb_elem);
-
-                                                    vector<implem> v4;
-                                
-                                                    int32_t indice4 = find_set(pq4, set_op, 0, set_op_size);
-
-                                                    if (indice4 != -1)   {
-                                                        implem imp;
-                                                        imp.op_sol.push_back(p3.second);
-                                                        imp.quad_sol.insert(pq4);
-                                                        imp.formula = "";
-                                                        v4.push_back(imp);
-                                                    }
-                                                    else {
-                                                        indice4 = find_map(pq4, map_xor, 0, map_xor_size);
-                                                        if (indice4 == -1)  {
-                                                            continue;
-                                                        }
-                                                        else {
-                                                            for (uint32_t m=0; m<10; m++)   {
-                                                                implem imp;
-                                                                poly_quad op_q1 = map_xor[indice4].second[m][0];
-                                                                poly op1(op_q1,size);
-                                                                imp.op_sol.push_back(op1);
-                                                                imp.quad_sol.insert(op_q1);
-                                                                poly_quad op_q2 = map_xor[indice4].second[m][1];
-                                                                poly op2(op_q2,size);
-                                                                imp.op_sol.push_back(op2);
-                                                                imp.quad_sol.insert(op_q2);
-                                                                poly D; 
-                                                                POLY_ADD(P4, p3.second, D); //Pour récupérer le delta linéaire
-                                                                imp.op_sol.push_back(D);
-                                                                imp.formula = "";
-                                                                v4.push_back(imp);
-                                                            }
-                                                        }
-                                                    }
-
-                                                    for (uint32_t it1 = 0; it1<v1.size(); it1++) {
-                                                        for (uint32_t it2 = 0; it2<v2.size(); it2++) {
-                                                            for (uint32_t it3 = 0; it3<v3.size(); it3++) {
-                                                                for (uint32_t it4 = 0; it4<v4.size(); it4++) {
-
-                                                                    implem temp;
-                                                                    temp.op_sol.insert(temp.op_sol.end(),v1[it1].op_sol.begin(), v1[it1].op_sol.end());
-                                                                    set<poly_quad> set_temp = v1[it1].quad_sol;
-                                                                    temp.quad_sol.merge(set_temp);
-
-                                                                    temp.op_sol.insert(temp.op_sol.end(),v2[it2].op_sol.begin(), v2[it2].op_sol.end());
-                                                                    set_temp = v2[it2].quad_sol;
-                                                                    temp.quad_sol.merge(set_temp);
-
-                                                                    temp.op_sol.insert(temp.op_sol.end(),v3[it3].op_sol.begin(), v3[it3].op_sol.end());
-                                                                    set_temp = v3[it3].quad_sol;
-                                                                    temp.quad_sol.merge(set_temp);
-
-                                                                    temp.op_sol.insert(temp.op_sol.end(),v4[it4].op_sol.begin(), v4[it4].op_sol.end());
-                                                                    set_temp = v4[it4].quad_sol;
-                                                                    temp.quad_sol.merge(set_temp);
-
-                                                                    set<poly_quad> s_quad_temp = temp.quad_sol;
-                                                                    uint32_t r = Rank(s_quad_temp);
-
-                                                                    if (r<=MAX_RANK_DEG3_V2)   {
-                                                                        temp.formula = "323";
-                                                                        res.push_back(temp);  
-                                                                    }  
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            
-                                            // On traite le cas où y = p1.first * (l[i] + p3.first) + p2.first * l[i2] + p3.second
-                                            poly P1;
-                                            P1 = truncate_lin(p1.first, size);
-                                            poly_quad pq1 = poly_to_poly_quad(P1 ,size, nb_elem);
-
-                                            vector<implem> v1;
-                            
-                                            int32_t indice1 = find_set(pq1, set_op, 0, set_op_size);
-
-                                            if (indice1 != -1)   {
-                                                implem imp;
-                                                imp.op_sol.push_back(p1.first);
-                                                imp.quad_sol.insert(pq1);
-                                                imp.formula = "";
-                                                v1.push_back(imp);
-                                            }
-                                            else {
-                                                indice1 = find_map(pq1, map_xor, 0, map_xor_size);
-                                                if (indice1 == -1)  {
-                                                    continue;
-                                                }
-                                                else {
-                                                    for (uint32_t m=0; m<10; m++)   {
-                                                        implem imp;
-                                                        poly_quad op_q1 = map_xor[indice1].second[m][0];
-                                                        poly op1(op_q1,size);
-                                                        imp.op_sol.push_back(op1);
-                                                        imp.quad_sol.insert(op_q1);
-                                                        poly_quad op_q2 = map_xor[indice1].second[m][1];
-                                                        poly op2(op_q2,size);
-                                                        imp.op_sol.push_back(op2);
-                                                        imp.quad_sol.insert(op_q2);
-                                                        poly D; 
-                                                        POLY_ADD(P1, p1.first, D); //Pour récupérer le delta linéaire
-                                                        imp.op_sol.push_back(D);
-                                                        imp.formula = "";
-                                                        v1.push_back(imp);
-                                                    }
-                                                }
-                                            }
-
-                                            poly p;
-                                            POLY_ADD(l[i], p3.first, p);
-                                            poly P2;
-                                            P2 = truncate_lin(p, size);
-                                            poly_quad pq2 = poly_to_poly_quad(P2 ,size, nb_elem);
-
-                                            vector<implem> v2;
-                            
-                                            int32_t indice2 = find_set(pq2, set_op, 0, set_op_size);
-
-                                            if (indice2 != -1)   {
-                                                implem imp;
-                                                imp.op_sol.push_back(p);
-                                                imp.quad_sol.insert(pq2);
-                                                imp.formula = "";
-                                                v2.push_back(imp);
-                                            }
-                                            else {
-                                                indice2 = find_map(pq2, map_xor, 0, map_xor_size);
-                                                if (indice2 == -1)  {
-                                                    continue;
-                                                }
-                                                else {
-                                                    for (uint32_t m=0; m<10; m++)   {
-                                                        implem imp;
-                                                        poly_quad op_q1 = map_xor[indice2].second[m][0];
-                                                        poly op1(op_q1,size);
-                                                        imp.op_sol.push_back(op1);
-                                                        imp.quad_sol.insert(op_q1);
-                                                        poly_quad op_q2 = map_xor[indice2].second[m][1];
-                                                        poly op2(op_q2,size);
-                                                        imp.op_sol.push_back(op2);
-                                                        imp.quad_sol.insert(op_q2);
-                                                        poly D; 
-                                                        POLY_ADD(P2, p, D); //Pour récupérer le delta linéaire
-                                                        imp.op_sol.push_back(D);
-                                                        imp.formula = "";
-                                                        v2.push_back(imp);
-                                                    }
-                                                }
-                                            }
-
-                                            poly P3;
-                                            P3 = truncate_lin(p2.first, size);
-                                            poly_quad pq3 = poly_to_poly_quad(P3 ,size, nb_elem);
-
-                                            vector<implem> v3;
-                        
-                                            int32_t indice3 = find_set(pq3, set_op, 0, set_op_size);
-
-                                            if (indice3 != -1)   {
-                                                implem imp;
-                                                imp.op_sol.push_back(p2.first);
-                                                imp.op_sol.push_back(l[i2]);
-                                                imp.quad_sol.insert(pq3);
-                                                imp.formula = "";
-                                                v3.push_back(imp);
-                                            }
-                                            else {
-                                                indice3 = find_map(pq3, map_xor, 0, map_xor_size);
-                                                if (indice3 == -1)  {
-                                                    continue;
-                                                }
-                                                else {
-                                                    for (uint32_t m=0; m<10; m++)   {
-                                                        implem imp;
-                                                        poly_quad op_q1 = map_xor[indice3].second[m][0];
-                                                        poly op1(op_q1,size);
-                                                        imp.op_sol.push_back(op1);
-                                                        imp.quad_sol.insert(op_q1);
-                                                        poly_quad op_q2 = map_xor[indice3].second[m][1];
-                                                        poly op2(op_q2,size);
-                                                        imp.op_sol.push_back(op2);
-                                                        imp.op_sol.push_back(l[i2]);
-                                                        imp.quad_sol.insert(op_q2);
-                                                        poly D; 
-                                                        POLY_ADD(P3, p2.first, D); //Pour récupérer le delta linéaire
-                                                        imp.op_sol.push_back(D);
-                                                        imp.formula = "";
-                                                        v3.push_back(imp);
-                                                    }
-                                                }
-                                            }
-
-                                            poly P4;
-                                            P4 = truncate_lin(p3.second, size);
-                                            poly_quad pq4 = poly_to_poly_quad(P4 ,size, nb_elem);
-
-                                            vector<implem> v4;
-                        
-                                            int32_t indice4 = find_set(pq4, set_op, 0, set_op_size);
-
-                                            if (indice4 != -1)   {
-                                                implem imp;
-                                                imp.op_sol.push_back(p3.second);
-                                                imp.quad_sol.insert(pq4);
-                                                imp.formula = "";
-                                                v4.push_back(imp);
-                                            }
-                                            else {
-                                                indice4 = find_map(pq4, map_xor, 0, map_xor_size);
-                                                if (indice4 == -1)  {
-                                                    continue;
-                                                }
-                                                else {
-                                                    for (uint32_t m=0; m<10; m++)   {
-                                                        implem imp;
-                                                        poly_quad op_q1 = map_xor[indice4].second[m][0];
-                                                        poly op1(op_q1,size);
-                                                        imp.op_sol.push_back(op1);
-                                                        imp.quad_sol.insert(op_q1);
-                                                        poly_quad op_q2 = map_xor[indice4].second[m][1];
-                                                        poly op2(op_q2,size);
-                                                        imp.op_sol.push_back(op2);
-                                                        imp.quad_sol.insert(op_q2);
-                                                        imp.formula = "";
-                                                        v4.push_back(imp);
-                                                    }
-                                                }
-                                            }
-
-                                            for (uint32_t it1 = 0; it1<v1.size(); it1++) {
-                                                for (uint32_t it2 = 0; it2<v2.size(); it2++) {
-                                                    for (uint32_t it3 = 0; it3<v3.size(); it3++) {
-                                                        for (uint32_t it4 = 0; it4<v4.size(); it4++) {
-
-                                                            implem temp;
-                                                            temp.op_sol.insert(temp.op_sol.end(),v1[it1].op_sol.begin(), v1[it1].op_sol.end());
-                                                            set<poly_quad> set_temp = v1[it1].quad_sol;
-                                                            temp.quad_sol.merge(set_temp);
-
-                                                            temp.op_sol.insert(temp.op_sol.end(),v2[it2].op_sol.begin(), v2[it2].op_sol.end());
-                                                            set_temp = v2[it2].quad_sol;
-                                                            temp.quad_sol.merge(set_temp);
-
-                                                            temp.op_sol.insert(temp.op_sol.end(),v3[it3].op_sol.begin(), v3[it3].op_sol.end());
-                                                            set_temp = v3[it3].quad_sol;
-                                                            temp.quad_sol.merge(set_temp);
-
-                                                            temp.op_sol.insert(temp.op_sol.end(),v4[it4].op_sol.begin(), v4[it4].op_sol.end());
-                                                            set_temp = v4[it4].quad_sol;
-                                                            temp.quad_sol.merge(set_temp);
-
-                                                            set<poly_quad> s_quad_temp = temp.quad_sol;
-                                                            uint32_t r = Rank(s_quad_temp);
-
-                                                            if (r<=MAX_RANK_DEG3_V2)   {
-                                                                temp.formula = "324";
-                                                                res.push_back(temp);
-                                                            }    
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }*/
                             }
                         }
                     }
@@ -2044,10 +1603,6 @@ vector<implem> add_to_op_selec_deg_3_v2(poly y, vector<poly> l, vector<poly> set
             }
         }
     }
-
-    /*cout<<"Fin deg 3 v2 pour thread : "<<omp_get_thread_num()<<endl;
-    res = remove_duplicates(res);
-    cout<<" Thread : "<<omp_get_thread_num()<<" res_size v2 = "<<res.size()<<endl;*/
 
     return remove_duplicates(res);
 }
@@ -2487,7 +2042,7 @@ vector<implem> add_to_op_selec_deg_4_v1(poly y, vector<poly> l, vector<poly> set
                         imp.op_sol.push_back(op2);
                         imp.quad_sol.insert(op_q2);
                         poly D; 
-                        POLY_ADD(map_xor_l_plus_lin[i], P1, D); //Pour récupérer le delta linéaire
+                        POLY_ADD(map_xor_l_plus_lin[i], P1, D);  
                         imp.op_sol.push_back(D);
                         imp.formula = "";
                         v1.push_back(imp);
@@ -2687,7 +2242,7 @@ vector<implem> add_to_op_selec_deg_4_v1(poly y, vector<poly> l, vector<poly> set
                                     imp.op_sol.push_back(op2);
                                     imp.quad_sol.insert(op_q2);
                                     poly D; 
-                                    POLY_ADD(map_xor_l_plus_lin[i], P1, D); //Pour récupérer le delta linéaire
+                                    POLY_ADD(map_xor_l_plus_lin[i], P1, D);  
                                     imp.op_sol.push_back(D);
                                     imp.formula = "";
                                     v1.push_back(imp);
@@ -4085,7 +3640,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                     imp.op_sol.push_back(op2);
                                                     imp.quad_sol.insert(op_q2);
                                                     poly D; 
-                                                    POLY_ADD(PP2, P2, D); //Pour récupérer le delta linéaire
+                                                    POLY_ADD(PP2, P2, D);  
                                                     imp.op_sol.push_back(D);
                                                     imp.formula = "";
                                                     v2.push_back(imp);
@@ -4122,7 +3677,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                     imp.op_sol.push_back(op2);
                                                     imp.quad_sol.insert(op_q2);
                                                     poly D; 
-                                                    POLY_ADD(P3, p3.first, D); //Pour récupérer le delta linéaire
+                                                    POLY_ADD(P3, p3.first, D);  
                                                     imp.op_sol.push_back(D);
                                                     imp.formula = "";
                                                     v3.push_back(imp);
@@ -4366,7 +3921,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                                 imp.op_sol.push_back(op2);
                                                                 imp.quad_sol.insert(op_q2);
                                                                 poly D; 
-                                                                POLY_ADD(PP2, P2, D); //Pour récupérer le delta linéaire
+                                                                POLY_ADD(PP2, P2, D);  
                                                                 imp.op_sol.push_back(D);
                                                                 imp.formula = "";
                                                                 v2.push_back(imp);
@@ -4403,7 +3958,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                                 imp.op_sol.push_back(op2);
                                                                 imp.quad_sol.insert(op_q2);
                                                                 poly D; 
-                                                                POLY_ADD(PP3, P3, D); //Pour récupérer le delta linéaire
+                                                                POLY_ADD(PP3, P3, D);  
                                                                 imp.op_sol.push_back(D);
                                                                 imp.formula = "";
                                                                 v3.push_back(imp);
@@ -4950,7 +4505,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                         imp.op_sol.push_back(op2);
                                         imp.quad_sol.insert(op_q2);
                                         poly D; 
-                                        POLY_ADD(map_xor_l_plus_lin[i], P1, D); //Pour récupérer le delta linéaire
+                                        POLY_ADD(map_xor_l_plus_lin[i], P1, D);  
                                         imp.op_sol.push_back(D);
                                         imp.formula = "";
                                         v1.push_back(imp);
@@ -4979,7 +4534,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                             imp.op_sol.push_back(op2);
                                             imp.quad_sol.insert(op_q2);
                                             poly D; 
-                                            POLY_ADD(p.first, P2, D); //Pour récupérer le delta linéaire
+                                            POLY_ADD(p.first, P2, D);  
                                             imp.op_sol.push_back(D);
                                             imp.formula = "";
                                             v2.push_back(imp);
@@ -5016,7 +4571,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                             imp.op_sol.push_back(op2);
                                             imp.quad_sol.insert(op_q2);
                                             poly D; 
-                                            POLY_ADD(P3, p3.first, D); //Pour récupérer le delta linéaire
+                                            POLY_ADD(P3, p3.first, D);  
                                             imp.op_sol.push_back(D);
                                             imp.formula = "";
                                             v3.push_back(imp);
@@ -5185,7 +4740,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                     imp.op_sol.push_back(op2);
                                                     imp.quad_sol.insert(op_q2);
                                                     poly D; 
-                                                    POLY_ADD(map_xor_l_plus_lin[i], P1, D); //Pour récupérer le delta linéaire
+                                                    POLY_ADD(map_xor_l_plus_lin[i], P1, D);  
                                                     imp.op_sol.push_back(D);
                                                     imp.formula = "";
                                                     v1.push_back(imp);
@@ -5214,7 +4769,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                         imp.op_sol.push_back(op2);
                                                         imp.quad_sol.insert(op_q2);
                                                         poly D; 
-                                                        POLY_ADD(p.first, P2, D); //Pour récupérer le delta linéaire
+                                                        POLY_ADD(p.first, P2, D);  
                                                         imp.op_sol.push_back(D);
                                                         imp.formula = "";
                                                         v2.push_back(imp);
@@ -5249,7 +4804,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                         imp.op_sol.push_back(op2);
                                                         imp.quad_sol.insert(op_q2);
                                                         poly D; 
-                                                        POLY_ADD(P3, PP3, D); //Pour récupérer le delta linéaire
+                                                        POLY_ADD(P3, PP3, D);  
                                                         imp.op_sol.push_back(D);
                                                         imp.formula = "";
                                                         v3.push_back(imp);

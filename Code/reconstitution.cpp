@@ -21,7 +21,7 @@ poly evaluate_implem(const implem &imp, uint32_t nb_elem)   {
             tokens.push_back(string(1, f[i]));
             i++;
         }
-        else if (f[i] == 'p') // token pN
+        else if (f[i] == 'p') 
         {
             size_t j = i + 1;
             while (j < f.size() && isdigit(f[j])) j++;
@@ -91,7 +91,7 @@ poly evaluate_implem(const implem &imp, uint32_t nb_elem)   {
     {
         if (tok[0] == 'p')  // Operand pX
         {
-            int idx = stoi(tok.substr(1)) - 1; // p1 → index 0
+            int idx = stoi(tok.substr(1)) - 1;
             st.push(imp.op_sol[idx]);
         }
         else
@@ -224,7 +224,7 @@ string print_imp(const implem& imp, const unordered_map<poly,string>& dict, uint
 
 vector<vector<poly>> Permutations(const vector<poly>& v) {
     vector<vector<poly>> result;
-    vector<poly> temp = v;  // Copie de v pour éviter de modifier l'original
+    vector<poly> temp = v; 
     sort(temp.begin(), temp.end());
 
     do {
@@ -351,12 +351,10 @@ void rewrite_imp(implem& imp, map<poly_quad, vector<poly_quad>>& reps, const vec
         for (size_t i=0; i<f.size(); i++)   {
             if (f[i] != 'p') continue;
 
-            // X
             size_t j = i+1;
             while (j < f.size() && isdigit(f[j])) j++;
             int idxA = stoi(f.substr(i+1, j-(i+1))) - 1;
 
-            // Vérify if we have " ^ pY"
             size_t k = j;
             while (k < f.size() && isspace(f[k])) k++;
             if (k >= f.size() || f[k] != '^') continue;
@@ -366,7 +364,6 @@ void rewrite_imp(implem& imp, map<poly_quad, vector<poly_quad>>& reps, const vec
             if (k >= f.size() || f[k] != 'p') continue;
             k++;
 
-            // Y
             size_t m = k;
             while (m < f.size() && isdigit(f[m])) m++;
             int idxB = idxA + 1;
@@ -672,11 +669,8 @@ bool try_incremental_merge(set<poly_quad>& current_set, uint32_t& current_rank, 
     uint32_t new_rank = Rank(merged_set);
 
     if (new_rank > nb_and_max) {
-        //cout<<"Le rang = "<<new_rank<<" dépasse la borne, on coupe"<<endl;
         return false;
     }
-
-    //cout<<"Le rang= "<<new_rank<<"  ne dépasse pas la borne, on continue"<<endl;
 
     current_set = merged_set;
     current_rank = new_rank;
