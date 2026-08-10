@@ -58,4 +58,4 @@ uint32_t Sbox(uint32_t X, uint8_t size) {
 	return Y;
 }
 Nb_and = 10
-Nb_xor = 35
+Nb_xor = 38

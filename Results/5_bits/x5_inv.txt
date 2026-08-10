@@ -45,7 +45,7 @@ uint32_t Sbox(uint32_t X, uint8_t size) {
 	uint32_t q14 = q6 ^ q10;
 	uint32_t q15 = q5 ^ q13;
 	uint32_t ty1 = ((q8) ^ (l1)) & ((l0)) ^ (q15);
-	uint32_t ty3 = ty1 ^ ((q10) ^ (0)) & ((l10)) ^ (q6);
+	uint32_t ty3 = ty1 ^ (q10) & ((l10)) ^ (q6);
 	uint32_t ty0 = ((q2) ^ x[2]) & ((q4) ^ x[0]) ^ (q13);
 	uint32_t ty4 = ((q14) ^ (x[4])) & ((l11)) ^ (q5);
 	uint32_t ty2 = ((q12) ^ (l12)) & ((q9) ^ (l13)) ^ (q6);
@@ -62,6 +62,6 @@ uint32_t Sbox(uint32_t X, uint8_t size) {
 }
 
 Nb_and = 10
-Nb_xor = 37
+Nb_xor = 40
 
 
