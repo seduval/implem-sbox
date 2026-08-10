@@ -78,7 +78,6 @@ vector<implem> add_to_op_selec_deg_1(poly y, vector<poly> l, vector<poly> set_op
 
 vector<implem> add_to_op_selec_deg_2_size_4_5_6_v1(poly y, vector<poly> l, vector<poly> set_op_l_plus_lin, uint32_t size, uint32_t deg, uint32_t nb_elem, poly_quad set_op [], pair_xor map_xor [], uint32_t set_op_size, uint32_t map_xor_size)    {
     vector<implem> res;
-    cout<<"On a du degré 2"<<endl;
     
     poly_quad pq1 = poly_to_poly_quad(y,size, nb_elem);
                     
