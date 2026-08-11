@@ -282,7 +282,6 @@ string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num,
 
     poly current_poly = y[k];
     to_print = "\tuint32_t ty" + outputpolyToIndex[current_poly] + " = ";
-    nb_xor++;
 
     for (uint32_t j=1; j<vect_real_order.size(); j++){
         poly poly_to_print = y[vect_real_order[j]];
@@ -442,6 +441,10 @@ void rewrite_imp(implem& imp, map<poly_quad, vector<poly_quad>>& reps, const vec
     }
 
     imp.formula = f;
+}
+
+uint32_t countXor(const string& formula) {
+    return count(formula.begin(), formula.end(), '^');
 }
 
 uint32_t retrieve_linear_from_quad_basis(const vector<poly_quad>& basis, vector<poly>& linear_op, unordered_map<poly, string>& polyToNames, vector<poly> l, uint32_t size_in, uint32_t nb_elem, uint32_t counter, uint32_t& nb_xor){
@@ -924,7 +927,6 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                             for (const auto& [id, num] : index) {
                                 for (uint32_t idx = 0; idx < imp[id][num].op_sol.size(); idx++) {
                                     if (imp[id][num].op_sol[idx].algebraic_degree(nb_elem) == 1) {
-                                        nb_xor++;
                                         if (!imp[id][num].op_sol[idx].is_linear_monomial(size_in)) {
                                             auto it = polyToNames.find(imp[id][num].op_sol[idx]);
                                             if (it == polyToNames.end()) {
@@ -952,6 +954,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
 
                             for (const auto& [id, num] : index) {
                                 rewrite_imp(imp[id][num], reps, basis, size_in, nb_elem);
+                                nb_xor += countXor(imp[id][num].formula);
                             }
 
                             string quadratic_filename = "mat_quad.txt";
