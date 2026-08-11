@@ -1,6 +1,8 @@
 #ifndef DECOMP_H
 #define DECOMP_H
 
+#include <omp.h>
+
 struct implem{
     vector<poly> op_sol; /* Contain all the polynomials to implement an output bit */ 
     set<poly_quad> quad_sol; /* Contain only the quadratic polynomials to implement an output bit */

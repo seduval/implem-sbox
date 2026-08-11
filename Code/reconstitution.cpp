@@ -199,7 +199,7 @@ string print_imp(const implem& imp, const unordered_map<poly,string>& dict, uint
                     i = j-1;
                 }
                 else {
-                    cerr<<"unknown poly in dict"<<endl;
+                    cout<<"unknown poly in dict"<<endl;
                 }
             }
             else {
@@ -273,7 +273,7 @@ vector<uint32_t> bit_num_to_xor_sum(const vector<vector<uint32_t>>* T, uint32_t 
     return vect_res;
 }
 
-string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num, uint32_t ind, unordered_map<poly, string> outputpolyToIndex, vector<poly> y) {
+string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num, uint32_t ind, unordered_map<poly, string> outputpolyToIndex, vector<poly> y, uint32_t& nb_xor) {
 
     string to_print;
 
@@ -286,6 +286,7 @@ string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num,
     for (uint32_t j=1; j<vect_real_order.size(); j++){
         poly poly_to_print = y[vect_real_order[j]];
         to_print += "ty" + outputpolyToIndex[poly_to_print] + " ^ ";
+        nb_xor++;
     }
 
     return to_print;
@@ -613,7 +614,7 @@ void print_basis_and_reps(const vector<poly_quad>& basis, const map<poly_quad, v
 
     ofstream out(filename);
     if (!out) {
-        throw runtime_error("Impossible d'ouvrir le fichier");
+        throw runtime_error("Unable to open file");
     }
 
     string init_line = "1";
@@ -965,7 +966,7 @@ void return_implem(uint32_t size_in, uint32_t size_out, uint32_t nb_elem, uint32
                             nb_xor += read_lin_file("res_quad.txt");
 
                             for (const auto& [id, num] : index) {
-                                string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y);
+                                string detail_implems = print_details_implem(T, id, num, outputpolyToIndex, y, nb_xor);
                                 cout<<detail_implems;
                                 string expr_y = print_imp(imp[id][num], polyToNames, size_in);
                                 cout<<expr_y + ";"<<endl;
