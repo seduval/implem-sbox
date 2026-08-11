@@ -282,6 +282,7 @@ string print_details_implem(const vector<vector<uint32_t>>* T, uint32_t bit_num,
 
     poly current_poly = y[k];
     to_print = "\tuint32_t ty" + outputpolyToIndex[current_poly] + " = ";
+    nb_xor++;
 
     for (uint32_t j=1; j<vect_real_order.size(); j++){
         poly poly_to_print = y[vect_real_order[j]];
