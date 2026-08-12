@@ -1,0 +1,88 @@
+ANF is given by : 
+y0 = x0 ^ x0x2 ^ x3 ^ x1x3 ^ x0x1x3 ^ x1x2x3 ^ x2x4 ^ x0x2x4 ^ x3x4 ^ x0x5 ^ x1x5 ^ x0x1x5 ^ x2x5 ^ x1x3x5 ^ x4x5 ^ x2x4x5 ^ x3x4x5
+y1 = x1 ^ x1x2 ^ x1x3 ^ x0x2x3 ^ x1x2x3 ^ x4 ^ x0x4 ^ x1x4 ^ x0x1x4 ^ x2x4 ^ x0x2x4 ^ x1x2x4 ^ x3x4 ^ x0x3x4 ^ x5 ^ x0x5 ^ x1x5 ^ x0x1x5 ^ x1x2x5 ^ x0x3x5 ^ x1x3x5 ^ x2x3x5 ^ x4x5 ^ x3x4x5
+y2 = x2 ^ x0x2 ^ x1x2 ^ x3 ^ x0x3 ^ x0x1x3 ^ x0x2x3 ^ x4 ^ x1x4 ^ x0x1x4 ^ x2x4 ^ x1x2x4 ^ x2x3x4 ^ x0x5 ^ x1x2x5 ^ x3x5 ^ x1x3x5 ^ x2x3x5 ^ x0x4x5 ^ x1x4x5 ^ x3x4x5
+y3 = x0x2 ^ x1x3 ^ x0x1x3 ^ x2x3 ^ x0x2x3 ^ x1x2x3 ^ x0x4 ^ x1x4 ^ x1x2x4 ^ x3x4 ^ x5 ^ x0x5 ^ x2x5 ^ x0x2x5 ^ x3x5 ^ x2x3x5 ^ x0x4x5 ^ x1x4x5 ^ x3x4x5
+y4 = x1x2 ^ x0x2x3 ^ x1x2x3 ^ x0x4 ^ x1x4 ^ x0x1x4 ^ x2x4 ^ x0x2x4 ^ x1x2x4 ^ x3x4 ^ x1x3x4 ^ x0x5 ^ x0x1x5 ^ x2x5 ^ x1x2x5 ^ x0x3x5 ^ x2x3x5 ^ x2x4x5
+y5 = x0x3 ^ x0x4 ^ x1x4 ^ x3x4 ^ x2x3x4 ^ x1x5 ^ x2x5 ^ x3x5 ^ x1x3x5 ^ x2x3x5 ^ x4x5 ^ x0x4x5 ^ x2x4x5
+
+The given s-box can be implemented by :
+
+uint32_t Sbox(uint32_t X, uint8_t size) {
+	uint32_t x[size];
+	for(uint8_t b=0; b<size; b++)  {
+		x[b] = X&1ul;
+		X >>= 1;
+	}
+	uint32_t y[size];
+	uint32_t l1 = x[2] ^ x[5];
+	uint32_t l3 = x[4] ^ x[5];
+	uint32_t l4 = x[3] ^ l1;
+	uint32_t l5 = l1 ^ l3;
+	uint32_t l6 = x[3] ^ x[5];
+	uint32_t l7 = l4 ^ l5;
+	uint32_t l8 = x[5];
+	uint32_t l9 = x[1] ^ x[3];
+	uint32_t l10 = x[1] ^ x[2];
+	uint32_t l2 = l3 ^ l10;
+	uint32_t l11 = x[2];
+	uint32_t l12 = l7 ^ l9;
+	uint32_t l14 = x[0] ^ l6;
+	uint32_t l0 = l1 ^ l14;
+	uint32_t l16 = x[0] ^ l3;
+	uint32_t l17 = l14 ^ l16;
+	uint32_t t0 = x[0] ^ x[1];
+	uint32_t l13 = l5 ^ t0;
+	uint32_t l15 = l3 ^ l13;
+	uint32_t q0 = x[4] & x[5];
+	uint32_t q1 = x[4] & l4;
+	uint32_t q2 = l5 & l6;
+	uint32_t q3 = l1 & l7 ^ l8;
+	uint32_t q4 = l8 & l9;
+	uint32_t q5 = l8 & l10;
+	uint32_t q6 = x[1] & x[4];
+	uint32_t q7 = l10 & l3;
+	uint32_t q8 = x[3] & l2;
+	uint32_t q9 = l11 & l12;
+	uint32_t q10 = q6 ^ q7;
+	uint32_t q11 = q3 ^ q4;
+	uint32_t q18 = q6 ^ q8;
+	uint32_t q19 = q5 ^ q9;
+	uint32_t tq0 = q0 ^ q6;
+	uint32_t tq1 = q1 ^ q2;
+	uint32_t tq2 = q11 ^ tq0;
+	uint32_t q13 = tq1 ^ tq2;
+	uint32_t q12 = q5 ^ q13;
+	uint32_t q22 = q19 ^ q13;
+	uint32_t q23 = q2 ^ q22;
+	uint32_t tq3 = q3 ^ q7;
+	uint32_t q16 = q18 ^ tq3;
+	uint32_t q17 = q1 ^ q16;
+	uint32_t tq4 = q4 ^ tq1;
+	uint32_t q15 = q12 ^ tq4;
+	uint32_t q14 = q2 ^ q15;
+	uint32_t q20 = q23 ^ q14;
+	uint32_t tq5 = q6 ^ q22;
+	uint32_t q21 = tq4 ^ tq5;
+	uint32_t q24 = q16 ^ tq5;
+	uint32_t ty0 = ((q24) ^ (l13)) & ((q17) ^ (l1)) ^ (q16);
+	uint32_t ty1 = ty0 ^ ((q24) ^ (l14)) & ((q18) ^ (l5)) ^ (q6);
+	uint32_t ty3 = ty0 ^ ((q21) ^ (l15)) & ((q11) ^ (x[4])) ^ (q3);
+	uint32_t ty4 = ((q23) ^ (l16)) & ((q15) ^ (l3)) ^ (q20);
+	uint32_t ty5 = ((q0) ^ (l17)) & ((q10) ^ (l16)) ^ (q7);
+	uint32_t ty2 = ty3 ^ ((q12) ^ (l17)) & ((q19) ^ (l13)) ^ (q22);
+	y[0] = ty0 ^ l0;
+	y[3] = ty3 ^ l1;
+	y[1] = ty1 ^ l2;
+	y[4] = ty4 ^ l3;
+	y[5] = ty5 ^ x[4];
+	y[2] = ty2 ^ x[3];
+	uint32_t Y = 0;
+	for(uint8_t b=0; b<size; b++) {
+		Y ^= ((Y>>b) ^ y[b]) << b;
+	}
+	return Y;
+}
+Nb_and = 16
+Nb_xor = 66
+
