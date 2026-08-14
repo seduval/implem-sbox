@@ -4205,6 +4205,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                     }
 
                     bool test_ps = false;
+                    //bool test_ps = true;
 
                     poly reste;
                     POLY_ADD(p.second, y3_2, reste);
@@ -4503,19 +4504,18 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                         poly op2(op_q2,size);
                                         imp.op_sol.push_back(op2);
                                         imp.quad_sol.insert(op_q2);
-                                        poly D; 
-                                        POLY_ADD(map_xor_l_plus_lin[i], P1, D);  
-                                        imp.op_sol.push_back(D);
+                                        imp.op_sol.push_back(P1_lin);
                                         imp.formula = "";
                                         v1.push_back(imp);
                                     }  
-
+    
                                     vector<implem> v2;
     
                                     int32_t indice2 = indiceP2;
                                     if (indice2 != -1)   {
                                         implem imp;
-                                        imp.op_sol.push_back(p.first);
+                                        imp.op_sol.push_back(P2);
+                                        imp.op_sol.push_back(P2_lin);
                                         imp.quad_sol.insert(pq2);
                                         imp.formula = "";
                                         v2.push_back(imp);
@@ -4532,24 +4532,24 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                             poly op2(op_q2,size);
                                             imp.op_sol.push_back(op2);
                                             imp.quad_sol.insert(op_q2);
-                                            poly D; 
-                                            POLY_ADD(p.first, P2, D);  
-                                            imp.op_sol.push_back(D);
+                                            imp.op_sol.push_back(P2_lin);
                                             imp.formula = "";
                                             v2.push_back(imp);
                                         }
                                     }
     
                                     vector<implem> v3;
-    
                                     poly P3;
                                     P3 = truncate_lin(p3.first, size);
+                                    poly P3_lin;
+                                    POLY_ADD(P3, p3.first, P3_lin);
                                     poly_quad pq3 = poly_to_poly_quad(P3 ,size, nb_elem);
     
                                     int32_t indice3 = find_set(pq3, set_op, 0, set_op_size);
                                     if (indice3 != -1)   {
                                         implem imp;
-                                        imp.op_sol.push_back(p3.first);
+                                        imp.op_sol.push_back(P3);
+                                        imp.op_sol.push_back(P3_lin);
                                         imp.quad_sol.insert(pq3);
                                         imp.formula = "";
                                         v3.push_back(imp);
@@ -4569,72 +4569,91 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                             poly op2(op_q2,size);
                                             imp.op_sol.push_back(op2);
                                             imp.quad_sol.insert(op_q2);
-                                            poly D; 
-                                            POLY_ADD(P3, p3.first, D);  
-                                            imp.op_sol.push_back(D);
+                                            imp.op_sol.push_back(P3_lin);
                                             imp.formula = "";
                                             v3.push_back(imp);
                                         }
                                     }
     
                                     vector<implem> v4;
-    
+
                                     poly P4;
                                     P4 = truncate_lin(set_op_l_plus_lin[i3], size);
+                                    poly P4_lin;
+                                    POLY_ADD(P4, set_op_l_plus_lin[i3], P4_lin);
                                     poly_quad pq4 = poly_to_poly_quad(P4 ,size, nb_elem);
     
-                                    implem imp4;
-                                    imp4.op_sol.push_back(set_op_l_plus_lin[i3]);
-                                    imp4.quad_sol.insert(pq4);
-                                    imp4.formula = "";
-                                    v4.push_back(imp4);
+                                    implem imp;
+                                    imp.op_sol.push_back(P4);
+                                    imp.op_sol.push_back(P4_lin);
+                                    imp.quad_sol.insert(pq4);
+                                    imp.formula = "";
+                                    v4.push_back(imp);
     
                                     if (m3 == 0){
                                         for (uint32_t it1 = 0; it1<v1.size(); it1++) {
-                                                                    
+                                                            
                                             set<poly_quad> set_quad_1 = v1[it1].quad_sol;
     
-                                                for (uint32_t it2 = 0; it2<v2.size(); it2++) {
-                                                    set<poly_quad> set_2 = v2[it2].quad_sol;
-                                                    set<poly_quad> set_quad_2 = set_quad_1;
-                                                    set_quad_2.merge(set_2);
+                                            for (uint32_t it2 = 0; it2<v2.size(); it2++) {
+                                                set<poly_quad> set_2 = v2[it2].quad_sol;
+                                                set<poly_quad> set_quad_2 = set_quad_1;
+                                                set_quad_2.merge(set_2);
     
-                                                    for (uint32_t it3 = 0; it3<v3.size(); it3++) {
-                                                        set<poly_quad> set_3 = v3[it3].quad_sol;
-                                                        set<poly_quad> set_quad_3 = set_quad_2;
-                                                        set_quad_3.merge(set_3);
+                                                for (uint32_t it3 = 0; it3<v3.size(); it3++) {
+                                                    set<poly_quad> set_3 = v3[it3].quad_sol;
+                                                    set<poly_quad> set_quad_3 = set_quad_2;
+                                                    set_quad_3.merge(set_3);
     
-                                                        for (uint32_t it4 = 0; it4<v4.size(); it4++) {
-                                                            set<poly_quad> set_4 = v4[it4].quad_sol;
-                                                            set<poly_quad> set_quad_4 = set_quad_3;
-                                                            set_quad_4.merge(set_4);
-                                                            set_quad_4.erase(0);
+                                                    for (uint32_t it4 = 0; it4<v4.size(); it4++) {
+                                                        set<poly_quad> set_4 = v4[it4].quad_sol;
+                                                        set<poly_quad> set_quad_4 = set_quad_3;
+                                                        set_quad_4.merge(set_4);
+                                                        set_quad_4.erase(0);
     
-                                                            set<poly_quad> s_quad_temp = set_quad_4;
-                                                            uint32_t r = Rank(s_quad_temp);
+                                                        set<poly_quad> s_quad_temp = set_quad_4;
+                                                        uint32_t r = Rank(s_quad_temp);
     
-                                                            if (r<=MAX_RANK_DEG4_V2)   {
-                                                                implem temp; 
-                                                                temp.quad_sol = set_quad_4;
-                                                                temp.op_sol.insert(temp.op_sol.end(),v1[it1].op_sol.begin(), v1[it1].op_sol.end());
-                                                                temp.op_sol.insert(temp.op_sol.end(),v2[it2].op_sol.begin(), v2[it2].op_sol.end());
-                                                                temp.op_sol.insert(temp.op_sol.end(),v3[it3].op_sol.begin(), v3[it3].op_sol.end());
-                                                                temp.op_sol.insert(temp.op_sol.end(),v4[it4].op_sol.begin(), v4[it4].op_sol.end());
-                                                                temp.formula = "4215";
-                                                                res.push_back(temp);  
+                                                        if (r<=MAX_RANK_DEG4_V2)   {
+                                                            implem temp; 
+                                                            temp.quad_sol = set_quad_4;
+                                                            temp.op_sol.insert(temp.op_sol.end(),v1[it1].op_sol.begin(), v1[it1].op_sol.end());
+                                                            temp.op_sol.insert(temp.op_sol.end(),v2[it2].op_sol.begin(), v2[it2].op_sol.end());
+                                                            temp.op_sol.insert(temp.op_sol.end(),v3[it3].op_sol.begin(), v3[it3].op_sol.end());
+                                                            temp.op_sol.insert(temp.op_sol.end(),v4[it4].op_sol.begin(), v4[it4].op_sol.end());
+                                                            
+                                                            string f = "";
+                                                            if (v2.size()==1){
+                                                                if (v3.size()==1){
+                                                                    f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7) * (p8)";
+                                                                }
+                                                                else {
+                                                                    f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7 ^ p8) * (p9)";
+                                                                }
                                                             }
+                                                            else {
+                                                                if (v3.size()==1){
+                                                                    f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8) * (p9)";
+                                                                }
+                                                                else {
+                                                                    f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8 ^ p9) * (p10)";
+                                                                }
+                                                            }
+                                                        
+                                                            temp.formula = f;
+
+                                                            res.push_back(temp);
                                                         }
-                                                    }                                                    
+                                                    }
                                                 }
+                                            }
                                         }
                                     }
                                     else {
     
                                         vector<implem> v5;
     
-                                        poly P5;
-                                        P5 = truncate_lin(p3.second, size);
-                                        poly_quad pq5 = poly_to_poly_quad(P5 ,size, nb_elem);
+                                        poly_quad pq5 = poly_to_poly_quad(p3.second ,size, nb_elem);
     
                                         int32_t indice5 = find_set(pq5, set_op, 0, set_op_size);
                                         if (indice5 != -1)   {
@@ -4699,8 +4718,47 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                                 temp.op_sol.insert(temp.op_sol.end(),v3[it3].op_sol.begin(), v3[it3].op_sol.end());
                                                                 temp.op_sol.insert(temp.op_sol.end(),v4[it4].op_sol.begin(), v4[it4].op_sol.end());
                                                                 temp.op_sol.insert(temp.op_sol.end(),v5[it5].op_sol.begin(), v5[it5].op_sol.end());
-                                                                temp.formula = "4216";
-                                                                res.push_back(temp);  
+                                                               
+                                                                string f = "";
+
+                                                                if (v2.size()==1){
+                                                                    if (v3.size()==1){
+                                                                        if (v5.size()==1){
+                                                                            f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7) * (p8 ^ p9) ^ p10";
+                                                                        }
+                                                                        else {
+                                                                            f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7) * (p8 ^ p9) ^ p10 ^ p11";
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        if (v5.size()==1){
+                                                                            f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7 ^ p8) * (p9 ^ p10) ^ p11";
+                                                                        }
+                                                                        else {
+                                                                            f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7 ^ p8) * (p9 ^ p10) ^ p11 ^ p12";
+                                                                        }
+                                                                    }
+                                                                }
+                                                                else {
+                                                                    if (v3.size()==1){
+                                                                        if (v5.size()==1){
+                                                                            f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8) * (p9 ^ p10) ^ p11";
+                                                                        }
+                                                                        else {
+                                                                            f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8) * (p9 ^ p10) ^ p11 ^ p12";
+                                                                        }
+                                                                    }
+                                                                    else {
+                                                                        if (v5.size()==1){
+                                                                            f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8 ^ p9) * (p10 ^ p11) ^ p12";
+                                                                        }
+                                                                        else {
+                                                                            f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8 ^ p9) * (p10 ^ p11) ^ p12 ^ p13";
+                                                                        }
+                                                                    }
+                                                                }
+                                                                temp.formula = f;
+                                                                res.push_back(temp);
                                                             }
                                                         }
                                                     }
@@ -4738,19 +4796,18 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                     poly op2(op_q2,size);
                                                     imp.op_sol.push_back(op2);
                                                     imp.quad_sol.insert(op_q2);
-                                                    poly D; 
-                                                    POLY_ADD(map_xor_l_plus_lin[i], P1, D);  
-                                                    imp.op_sol.push_back(D);
+                                                    imp.op_sol.push_back(P1_lin);
                                                     imp.formula = "";
                                                     v1.push_back(imp);
-                                                } 
-
+                                                }  
+                
                                                 vector<implem> v2;
-    
+                
                                                 int32_t indice2 = indiceP2;
                                                 if (indice2 != -1)   {
                                                     implem imp;
-                                                    imp.op_sol.push_back(p.first);
+                                                    imp.op_sol.push_back(P2);
+                                                    imp.op_sol.push_back(P2_lin);
                                                     imp.quad_sol.insert(pq2);
                                                     imp.formula = "";
                                                     v2.push_back(imp);
@@ -4767,9 +4824,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                         poly op2(op_q2,size);
                                                         imp.op_sol.push_back(op2);
                                                         imp.quad_sol.insert(op_q2);
-                                                        poly D; 
-                                                        POLY_ADD(p.first, P2, D);  
-                                                        imp.op_sol.push_back(D);
+                                                        imp.op_sol.push_back(P2_lin);
                                                         imp.formula = "";
                                                         v2.push_back(imp);
                                                     }
@@ -4780,18 +4835,24 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                 poly PP3;
                                                 POLY_ADD(p3.first, pp3.first, PP3);
                                                 poly P3 = truncate_lin(PP3, size);
+                                                poly P3_lin;
+                                                POLY_ADD(P3, PP3, P3_lin);
                                                 poly_quad pq3 = poly_to_poly_quad(P3 ,size, nb_elem);
     
                                                 int32_t indice3 = find_set(pq3, set_op, 0, set_op_size);
                                                 if (indice3 != -1)   {
                                                     implem imp;
-                                                    imp.op_sol.push_back(PP3);
+                                                    imp.op_sol.push_back(P3);
+                                                    imp.op_sol.push_back(P3_lin);
                                                     imp.quad_sol.insert(pq3);
                                                     imp.formula = "";
                                                     v3.push_back(imp);
                                                 }
                                                 else {
                                                     indice3 = find_map(pq3, map_xor, 0, map_xor_size);
+                                                    if (indice3 == -1){
+                                                        continue;
+                                                    }
                                                     for (uint32_t m=0; m<10; m++)   {
                                                         implem imp;
                                                         poly_quad op_q1 = map_xor[indice3].second[m][0];
@@ -4802,71 +4863,91 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                         poly op2(op_q2,size);
                                                         imp.op_sol.push_back(op2);
                                                         imp.quad_sol.insert(op_q2);
-                                                        poly D; 
-                                                        POLY_ADD(P3, PP3, D);  
-                                                        imp.op_sol.push_back(D);
+                                                        imp.op_sol.push_back(P3_lin);
                                                         imp.formula = "";
                                                         v3.push_back(imp);
                                                     }
                                                 }
     
                                                 vector<implem> v4;
-    
-                                                poly P4 = truncate_lin(set_op_l_plus_lin[i3], size);
+
+                                                poly P4;
+                                                P4 = truncate_lin(set_op_l_plus_lin[i3], size);
+                                                poly P4_lin;
+                                                POLY_ADD(P4, set_op_l_plus_lin[i3], P4_lin);
                                                 poly_quad pq4 = poly_to_poly_quad(P4 ,size, nb_elem);
-    
-                                                implem imp4;
-                                                imp4.op_sol.push_back(set_op_l_plus_lin[i3]);
-                                                imp4.quad_sol.insert(pq4);
-                                                imp4.formula = "";
-                                                v4.push_back(imp4);
+                
+                                                implem imp;
+                                                imp.op_sol.push_back(P4);
+                                                imp.op_sol.push_back(P4_lin);
+                                                imp.quad_sol.insert(pq4);
+                                                imp.formula = "";
+                                                v4.push_back(imp);
     
                                                 if (mm3 == 0){
                                                     for (uint32_t it1 = 0; it1<v1.size(); it1++) {
-                                                                                
+                                                            
                                                         set<poly_quad> set_quad_1 = v1[it1].quad_sol;
-    
-                                                            for (uint32_t it2 = 0; it2<v2.size(); it2++) {
-                                                                set<poly_quad> set_2 = v2[it2].quad_sol;
-                                                                set<poly_quad> set_quad_2 = set_quad_1;
-                                                                set_quad_2.merge(set_2);
-    
-                                                                for (uint32_t it3 = 0; it3<v3.size(); it3++) {
-                                                                    set<poly_quad> set_3 = v3[it3].quad_sol;
-                                                                    set<poly_quad> set_quad_3 = set_quad_2;
-                                                                    set_quad_3.merge(set_3);
-    
-                                                                    for (uint32_t it4 = 0; it4<v4.size(); it4++) {
-                                                                        set<poly_quad> set_4 = v4[it4].quad_sol;
-                                                                        set<poly_quad> set_quad_4 = set_quad_3;
-                                                                        set_quad_4.merge(set_4);
-                                                                        set_quad_4.erase(0);
-    
-                                                                        set<poly_quad> s_quad_temp = set_quad_4;
-                                                                        uint32_t r = Rank(s_quad_temp);
-    
-                                                                        if (r<=MAX_RANK_DEG4_V2)   {
-                                                                            implem temp; 
-                                                                            temp.quad_sol = set_quad_4;
-                                                                            temp.op_sol.insert(temp.op_sol.end(),v1[it1].op_sol.begin(), v1[it1].op_sol.end());
-                                                                            temp.op_sol.insert(temp.op_sol.end(),v2[it2].op_sol.begin(), v2[it2].op_sol.end());
-                                                                            temp.op_sol.insert(temp.op_sol.end(),v3[it3].op_sol.begin(), v3[it3].op_sol.end());
-                                                                            temp.op_sol.insert(temp.op_sol.end(),v4[it4].op_sol.begin(), v4[it4].op_sol.end());
-                                                                            temp.formula = "4217";
-                                                                            res.push_back(temp);  
+                
+                                                        for (uint32_t it2 = 0; it2<v2.size(); it2++) {
+                                                            set<poly_quad> set_2 = v2[it2].quad_sol;
+                                                            set<poly_quad> set_quad_2 = set_quad_1;
+                                                            set_quad_2.merge(set_2);
+                
+                                                            for (uint32_t it3 = 0; it3<v3.size(); it3++) {
+                                                                set<poly_quad> set_3 = v3[it3].quad_sol;
+                                                                set<poly_quad> set_quad_3 = set_quad_2;
+                                                                set_quad_3.merge(set_3);
+                
+                                                                for (uint32_t it4 = 0; it4<v4.size(); it4++) {
+                                                                    set<poly_quad> set_4 = v4[it4].quad_sol;
+                                                                    set<poly_quad> set_quad_4 = set_quad_3;
+                                                                    set_quad_4.merge(set_4);
+                                                                    set_quad_4.erase(0);
+                
+                                                                    set<poly_quad> s_quad_temp = set_quad_4;
+                                                                    uint32_t r = Rank(s_quad_temp);
+                
+                                                                    if (r<=MAX_RANK_DEG4_V2)   {
+                                                                        implem temp; 
+                                                                        temp.quad_sol = set_quad_4;
+                                                                        temp.op_sol.insert(temp.op_sol.end(),v1[it1].op_sol.begin(), v1[it1].op_sol.end());
+                                                                        temp.op_sol.insert(temp.op_sol.end(),v2[it2].op_sol.begin(), v2[it2].op_sol.end());
+                                                                        temp.op_sol.insert(temp.op_sol.end(),v3[it3].op_sol.begin(), v3[it3].op_sol.end());
+                                                                        temp.op_sol.insert(temp.op_sol.end(),v4[it4].op_sol.begin(), v4[it4].op_sol.end());
+                                                                        
+                                                                        string f = "";
+                                                                        if (v2.size()==1){
+                                                                            if (v3.size()==1){
+                                                                                f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7) * (p8)";
+                                                                            }
+                                                                            else {
+                                                                                f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7 ^ p8) * (p9)";
+                                                                            }
                                                                         }
+                                                                        else {
+                                                                            if (v3.size()==1){
+                                                                                f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8) * (p9)";
+                                                                            }
+                                                                            else {
+                                                                                f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8 ^ p9) * (p10)";
+                                                                            }
+                                                                        }
+                                                                    
+                                                                        temp.formula = f;
+
+                                                                        res.push_back(temp);
                                                                     }
-                                                                }                                                    
+                                                                }
                                                             }
+                                                        }
                                                     }
                                                 }
                                                 else {
     
                                                     vector<implem> v5;
     
-                                                    poly P5;
-                                                    P5 = truncate_lin(pp3.second, size);
-                                                    poly_quad pq5 = poly_to_poly_quad(P5 ,size, nb_elem);
+                                                     poly_quad pq5 = poly_to_poly_quad(pp3.second ,size, nb_elem);
     
                                                     int32_t indice5 = find_set(pq5, set_op, 0, set_op_size);
                                                     if (indice5 != -1)   {
@@ -4931,7 +5012,46 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
                                                                             temp.op_sol.insert(temp.op_sol.end(),v3[it3].op_sol.begin(), v3[it3].op_sol.end());
                                                                             temp.op_sol.insert(temp.op_sol.end(),v4[it4].op_sol.begin(), v4[it4].op_sol.end());
                                                                             temp.op_sol.insert(temp.op_sol.end(),v5[it5].op_sol.begin(), v5[it5].op_sol.end());
-                                                                            temp.formula = "4218";
+                                                                            
+                                                                            string f = "";
+
+                                                                            if (v2.size()==1){
+                                                                                if (v3.size()==1){
+                                                                                    if (v5.size()==1){
+                                                                                        f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7) * (p8 ^ p9) ^ p10";
+                                                                                    }
+                                                                                    else {
+                                                                                        f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7) * (p8 ^ p9) ^ p10 ^ p11";
+                                                                                    }
+                                                                                }
+                                                                                else {
+                                                                                    if (v5.size()==1){
+                                                                                        f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7 ^ p8) * (p9 ^ p10) ^ p11";
+                                                                                    }
+                                                                                    else {
+                                                                                        f = "(p1 ^ p2 ^ p3) * (p4 ^ p5) ^ (p6 ^ p7 ^ p8) * (p9 ^ p10) ^ p11 ^ p12";
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            else {
+                                                                                if (v3.size()==1){
+                                                                                    if (v5.size()==1){
+                                                                                        f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8) * (p9 ^ p10) ^ p11";
+                                                                                    }
+                                                                                    else {
+                                                                                        f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8) * (p9 ^ p10) ^ p11 ^ p12";
+                                                                                    }
+                                                                                }
+                                                                                else {
+                                                                                    if (v5.size()==1){
+                                                                                        f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8 ^ p9) * (p10 ^ p11) ^ p12";
+                                                                                    }
+                                                                                    else {
+                                                                                        f = "(p1 ^ p2 ^ p3) * (p4 ^ p5 ^ p6) ^ (p7 ^ p8 ^ p9) * (p10 ^ p11) ^ p12 ^ p13";
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            temp.formula = f;
                                                                             res.push_back(temp);  
                                                                         }
                                                                     }
@@ -4953,8 +5073,7 @@ vector<implem> add_to_op_selec_deg_4_v2(poly y, vector<poly> l, vector<poly> set
     }
 
     res = remove_duplicates(res);
-    cout<<" Thread : "<<omp_get_thread_num()<<" res_size = "<<res.size()<<endl;
-   
+
     return res;
 }
 
